@@ -41,11 +41,12 @@
                     var wordmark_path = "assets/components/wordmark.svg";
                     d3.xml(wordmark_path, "image/svg+xml", function(error, xml) {
                         if (error) throw error;
-                        xml.documentElement.setAttribute("class", "svg_content");
                         update_logo_background_state();
-                        xml.documentElement.style.width = logo_background.width / 3;
-                        xml.documentElement.style.top = logo_background.centerY - $('#wordmark').height() / 2;
-                        xml.documentElement.style.left = logo_background.centerX - $('#wordmark').width() / 2;
+                        xml.documentElement.setAttribute("preserveAspectRatio", "xMidYMid meet");
+                        xml.documentElement.setAttribute("class", "svg_content");
+                        xml.documentElement.style.width = logo_background.width / 3 + "px";
+                        xml.documentElement.style.top = logo_background.centerY - parseInt($('#wordmark').height()) / 2 + "px";
+                        xml.documentElement.style.left = logo_background.centerX - parseInt($('#wordmark').width()) / 2 + "px";
                         svg_parent.appendChild(xml.documentElement);
                         if (callback) callback;
                     });
@@ -66,13 +67,13 @@
                     //console.log("position_wordmark");
                     update_logo_background_state();
                     d3.select("#wordmark")
-                        .style("width", logo_background.width / 3)
-                        .style("top", logo_background.centerY - $('#wordmark').height() / 2)
-                        .style("left", logo_background.centerX - $('#wordmark').width() / 2);
+                        .style("width", logo_background.width / 3 + "px")
+                        .style("top", logo_background.centerY - parseInt($('#wordmark').height()) / 2 + "px")
+                        .style("left", logo_background.centerX - parseInt($('#wordmark').width()) / 2 + "px");
                 };
 
                 var position_content = function() {
-                    $('#content').css("padding-top", logo_background.height);
+                    $('#content').css("padding-top", logo_background.height + "px");
                 };
 
                 window.onresize = function() {
