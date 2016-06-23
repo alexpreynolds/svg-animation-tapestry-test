@@ -37,7 +37,7 @@
                 var svg_parent = null;
                 svg_parent = document.getElementsByClassName('svg_container')[0];
 
-                var load_workmark = function(callback) {
+                var load_wordmark = function(callback) {
                     var wordmark_path = "assets/components/wordmark.svg";
                     d3.xml(wordmark_path, "image/svg+xml", function(error, xml) {
                         if (error) throw error;
@@ -47,14 +47,20 @@
                     });
                 };
 
-                var position_workmark = function() {
+                var update_logo_background_state = function() {
+                    //console.log("update_logo_background_state");
                     var $this = $('#logo_background');
                     logo_background.offset = $this.offset();
                     logo_background.width = $this.width();
                     logo_background.height = $this.height();
                     logo_background.centerX = logo_background.offset.left + logo_background.width / 2;
                     logo_background.centerY = logo_background.offset.top + logo_background.height / 2;
-                    console.log(logo_background, d3.select("#wordmark"));
+                    //console.log(logo_background);
+                }
+
+                var position_wordmark = function() {
+                    //console.log("position_wordmark");
+                    update_logo_background_state();
                     d3.select("#wordmark")
                         .style("width", logo_background.width / 3)
                         .style("top", logo_background.centerY - $('#wordmark').height() / 2)
@@ -65,17 +71,16 @@
                     $('#content').css("padding-top", logo_background.height);
                 };
 
-                load_workmark(position_workmark);
-
                 window.onresize = function() {
-                    position_workmark();
+                    position_wordmark();
                     position_content();
                 }
 
+                load_wordmark(position_wordmark);
+
                 setTimeout(function() {
-                    console.log("resize");
                     $(window).trigger('resize');
-                }, 100);
+                }, 10);
 
             });
         </script>
