@@ -42,6 +42,10 @@
                     d3.xml(wordmark_path, "image/svg+xml", function(error, xml) {
                         if (error) throw error;
                         xml.documentElement.setAttribute("class", "svg_content");
+                        update_logo_background_state();
+                        xml.documentElement.style.width = logo_background.width / 3;
+                        xml.documentElement.style.top = logo_background.centerY - $('#wordmark').height() / 2;
+                        xml.documentElement.style.left = logo_background.centerX - $('#wordmark').width() / 2;
                         svg_parent.appendChild(xml.documentElement);
                         if (callback) callback;
                     });
