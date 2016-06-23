@@ -1,37 +1,87 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head>
-    <meta charset="UTF-8">
-    <title>Svg-animation-tapestry-test by alexpreynolds</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
-  </head>
-  <body>
-    <section class="page-header">
-      <h1 class="project-name">Svg-animation-tapestry-test</h1>
-      <h2 class="project-tagline">A project to test animation of a tapestry of copied SVG elements </h2>
-      <a href="https://github.com/alexpreynolds/svg-animation-tapestry-test" class="btn">View on GitHub</a>
-      <a href="https://github.com/alexpreynolds/svg-animation-tapestry-test/zipball/master" class="btn">Download .zip</a>
-      <a href="https://github.com/alexpreynolds/svg-animation-tapestry-test/tarball/master" class="btn">Download .tar.gz</a>
-    </section>
+    <head>
+        <meta charset="UTF-8">
+        <title>svg-animation-tapestry-test</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" type="text/css" href="assets/css/styles.css" media="screen">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    </head>
+    <body>
+        <div id="parent_container">
+            <div class="svg_container"></div>
+            <div id="content">
+                <div class="main">
+                    <p>Developing revolutionary technologies to empower breakthrough science</p>
+                    <p>Creating a new scientific environment that radically enables exceptionally talented individuals to do the best work of their lives</p>
+                </div>
+                <div class="contact">
+                    <p>
+                        Inquiries: <a href="mailto:info@altiusinstitute.org">info@altiusinstitute.org</a><br>
+                        2211 Elliott Ave, Suite 600, Seattle WA 98121
+                    </p>
+                </div>
 
-    <section class="main-content">
-      <h1>
-<a id="svg-animation-tapestry-test" class="anchor" href="#svg-animation-tapestry-test" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>svg-animation-tapestry-test</h1>
+                
+            </div>
+            <div id="background">
+                <img src="assets/img/background.jpg" alt="Altius Institute for Biomedical Sciences" id="logo_background" class="logo_background" />
+            </div>
+            
+        </div>
+        
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
+        <script type="text/javascript" src="//d3js.org/d3.v3.min.js"></script>
+        <script type="text/javascript">
+            window.addEventListener("load", function() {
+                
+                var logo_background = { offset : null, width : 0, height : 0, centerX : 0, centerY : 0 };
+                var svg_parent = null;
+                svg_parent = document.getElementsByClassName('svg_container')[0];
+                svg_parent.style.visibility = "hidden";
 
-<p>A project to test animation of a tapestry of copied SVG elements </p>
+                var load_workmark = function(callback) {
+                    var wordmark_path = "assets/components/wordmark.svg";
+                    d3.xml(wordmark_path, "image/svg+xml", function(error, xml) {
+                        if (error) throw error;
+                        xml.documentElement.setAttribute("class", "svg_content");
+                        svg_parent.appendChild(xml.documentElement);
+                        if (callback) callback;
+                    });
+                };
 
-      <footer class="site-footer">
-        <span class="site-footer-owner"><a href="https://github.com/alexpreynolds/svg-animation-tapestry-test">Svg-animation-tapestry-test</a> is maintained by <a href="https://github.com/alexpreynolds">alexpreynolds</a>.</span>
+                var position_workmark = function() {
+                    var $this = $('#logo_background');
+                    logo_background.offset = $this.offset();
+                    logo_background.width = $this.width();
+                    logo_background.height = $this.height();
+                    logo_background.centerX = logo_background.offset.left + logo_background.width / 2;
+                    logo_background.centerY = logo_background.offset.top + logo_background.height / 2;
+                    d3.select("#wordmark")
+                        .style("width", logo_background.width / 3)
+                        .style("top", logo_background.centerY - $('#wordmark').height() / 2)
+                        .style("left", logo_background.centerX - $('#wordmark').width() / 2);
+                };
 
-        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
-      </footer>
+                var position_content = function() {
+                    $('#content').css("padding-top", logo_background.height);
+                };
 
-    </section>
+                load_workmark(null);
 
-  
-  </body>
+                window.onresize = function() {
+                    svg_parent.style.visibility = "hidden";
+                    position_workmark();
+                    position_content();
+                    svg_parent.style.visibility = "visible";
+                }
+
+                setTimeout(function() {
+                    $(window).trigger('resize');
+                }, 10);
+
+            });
+        </script>
+    </body>
+    
 </html>
