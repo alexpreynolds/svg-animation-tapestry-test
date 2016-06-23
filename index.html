@@ -49,12 +49,12 @@
 
                 var position_workmark = function() {
                     var $this = $('#logo_background');
-                    console.log($this);
                     logo_background.offset = $this.offset();
                     logo_background.width = $this.width();
                     logo_background.height = $this.height();
                     logo_background.centerX = logo_background.offset.left + logo_background.width / 2;
                     logo_background.centerY = logo_background.offset.top + logo_background.height / 2;
+                    console.log(logo_background, d3.select("#wordmark"));
                     d3.select("#wordmark")
                         .style("width", logo_background.width / 3)
                         .style("top", logo_background.centerY - $('#wordmark').height() / 2)
@@ -73,6 +73,7 @@
                 }
 
                 setTimeout(function() {
+                    console.log("resize");
                     $(window).trigger('resize');
                 }, 100);
 
