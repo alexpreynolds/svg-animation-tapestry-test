@@ -8,8 +8,7 @@ body {
     z-index: -1000;
 }
 
-img.logo_background
-{
+img.logo_background {
     position: absolute;
     max-width: 100%;
     top: 0%;
@@ -34,11 +33,10 @@ img.logo_background:empty
 #content {
     display: inline-block;
     position: absolute;
-    z-index: 100;
-    padding-left: 20px;
-    padding-right: 20px;
+    z-index: 100;    
     text-align: center;
     color: #999;
+    width: 100%;
 }
 
 .svg_container { 
@@ -56,6 +54,11 @@ img.logo_background:empty
     position: absolute;
     top: 0;
     left: 0;
+}
+
+.main, .contact {
+    padding-left: 40px;
+    padding-right: 40px;
 }
 
 .main {
