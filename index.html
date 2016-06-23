@@ -45,8 +45,8 @@
                         xml.documentElement.setAttribute("preserveAspectRatio", "xMidYMid meet");
                         xml.documentElement.setAttribute("class", "svg_content");
                         xml.documentElement.style.width = logo_background.width / 3 + "px";
-                        xml.documentElement.style.top = logo_background.centerY - parseInt($('#wordmark').height()) / 2 + "px";
-                        xml.documentElement.style.left = logo_background.centerX - parseInt($('#wordmark').width()) / 2 + "px";
+                        xml.documentElement.style.top = (logo_background.centerY - (160 / 2)) + "px";
+                        xml.documentElement.style.left = (logo_background.centerX - (340 / 2)) + "px";
                         svg_parent.appendChild(xml.documentElement);
                         if (callback) callback;
                     });
