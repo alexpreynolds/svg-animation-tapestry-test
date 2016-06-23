@@ -36,7 +36,6 @@
                 var logo_background = { offset : null, width : 0, height : 0, centerX : 0, centerY : 0 };
                 var svg_parent = null;
                 svg_parent = document.getElementsByClassName('svg_container')[0];
-                svg_parent.style.visibility = "hidden";
 
                 var load_workmark = function(callback) {
                     var wordmark_path = "assets/components/wordmark.svg";
@@ -69,10 +68,8 @@
                 load_workmark(position_workmark);
 
                 window.onresize = function() {
-                    svg_parent.style.visibility = "hidden";
                     position_workmark();
                     position_content();
-                    svg_parent.style.visibility = "visible";
                 }
 
                 setTimeout(function() {
