@@ -34,6 +34,7 @@
             window.addEventListener("load", function() {
                 const WORDMARK_FRACTION = 2.5; // higher is smaller
                 var logo_background = { offset : null, width : 0, height : 0, centerX : 0, centerY : 0 };
+                var svg_nodes_xml = null;
                 var svg_parent = null;
                 svg_parent = document.getElementsByClassName('svg_container')[0];
 
@@ -52,6 +53,15 @@
                     });
                 };
 
+                var load_nodes = function(callback) {
+                    var nodes_path = "assets/components/nodes.svg";
+                    d3.xml(nodes_path, "image/svg+xml", function(error, xml) {
+                        if (error) throw error;
+                        svg_nodes_xml = xml;
+                        if (callback) callback;
+                    });
+                };
+
                 var update_logo_background_state = function() {
                     var $this = $('#logo_background');
                     logo_background.offset = $this.offset();
@@ -59,7 +69,7 @@
                     logo_background.height = $this.height();
                     logo_background.centerX = logo_background.offset.left + logo_background.width / 2;
                     logo_background.centerY = logo_background.offset.top + logo_background.height / 2;
-                }
+                };
 
                 var position_wordmark = function() {
                     update_logo_background_state();
@@ -73,13 +83,19 @@
                     $('#content').css("padding-top", logo_background.height + "px");
                 };
 
+                var trigger_resize = function() {
+                    $(window).trigger('resize');
+                }
+
                 window.onresize = function() {
                     position_wordmark();
                     position_content();
-                }
+                };
+
+                load_wordmark(trigger_resize);
+                load_nodes(trigger_resize);
 
                 setTimeout(function() {
-                    load_wordmark(null);
                     $(window).trigger('resize');
                 }, 100);
 
