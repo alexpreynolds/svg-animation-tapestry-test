@@ -31,72 +31,73 @@
         <script type="text/javascript" src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
         <script type="text/javascript" src="//d3js.org/d3.v3.min.js"></script>
         <script type="text/javascript">
-            window.addEventListener("load", function() {
-                const WORDMARK_FRACTION = 2.5; // higher is smaller
-                var logo_background = { offset : null, width : 0, height : 0, centerX : 0, centerY : 0 };
-                var svg_nodes_xml = null;
-                var svg_parent = null;
-                svg_parent = document.getElementsByClassName('svg_container')[0];
+            const WORDMARK_FRACTION = 2.5; // higher is smaller
+            var logo_background = { offset : null, width : 0, height : 0, centerX : 0, centerY : 0 };
+            var svg_nodes_xml = null;
+            var svg_parent = null;
 
-                var load_wordmark = function(callback) {
-                    var wordmark_path = "assets/components/wordmark.svg";
-                    d3.xml(wordmark_path, "image/svg+xml", function(error, xml) {
-                        if (error) throw error;
-                        update_logo_background_state();
-                        xml.documentElement.setAttribute("preserveAspectRatio", "xMidYMid meet");
-                        xml.documentElement.setAttribute("class", "svg_content");
-                        xml.documentElement.style.width = logo_background.width / WORDMARK_FRACTION + "px";
-                        xml.documentElement.style.top = (logo_background.centerY - (159.6 / 2)) + "px";
-                        xml.documentElement.style.left = (logo_background.centerX - (343 / 2)) + "px";
-                        svg_parent.appendChild(xml.documentElement);
-                        if (callback) callback;
-                    });
-                };
-
-                var load_nodes = function(callback) {
-                    var nodes_path = "assets/components/nodes.svg";
-                    d3.xml(nodes_path, "image/svg+xml", function(error, xml) {
-                        if (error) throw error;
-                        svg_nodes_xml = xml;
-                        if (callback) callback;
-                    });
-                };
-
-                var update_logo_background_state = function() {
-                    var $this = $('#logo_background');
-                    logo_background.offset = $this.offset();
-                    logo_background.width = $this.width();
-                    logo_background.height = $this.height();
-                    logo_background.centerX = logo_background.offset.left + logo_background.width / 2;
-                    logo_background.centerY = logo_background.offset.top + logo_background.height / 2;
-                };
-
-                var position_wordmark = function() {
+            var load_wordmark = function(callback) {
+                var wordmark_path = "assets/components/wordmark.svg";
+                d3.xml(wordmark_path, "image/svg+xml", function(error, xml) {
+                    if (error) throw error;
                     update_logo_background_state();
-                    d3.select("#wordmark")
-                        .style("width", logo_background.width / WORDMARK_FRACTION + "px")
-                        .style("top", logo_background.centerY - parseInt($('#wordmark').height()) / 2 + "px")
-                        .style("left", logo_background.centerX - parseInt($('#wordmark').width()) / 2 + "px");
-                };
+                    xml.documentElement.setAttribute("preserveAspectRatio", "xMidYMid meet");
+                    xml.documentElement.setAttribute("class", "svg_content");
+                    xml.documentElement.style.width = logo_background.width / WORDMARK_FRACTION + "px";
+                    xml.documentElement.style.top = (logo_background.centerY - (159.6 / 2)) + "px";
+                    xml.documentElement.style.left = (logo_background.centerX - (343 / 2)) + "px";
+                    svg_parent.appendChild(xml.documentElement);
+                    if (callback) callback;
+                });
+            };
 
-                var position_content = function() {
-                    $('#content').css("padding-top", logo_background.height + "px");
-                };
+            var load_nodes = function(callback) {
+                var nodes_path = "assets/components/nodes.svg";
+                d3.xml(nodes_path, "image/svg+xml", function(error, xml) {
+                    if (error) throw error;
+                    svg_nodes_xml = xml;
+                    if (callback) callback;
+                });
+            };
 
-                var trigger_resize = function() {
-                    setTimeout(function() {
-                        $(window).trigger('resize');
-                    }, 100);
-                }
+            var update_logo_background_state = function() {
+                var $this = $('#logo_background');
+                logo_background.offset = $this.offset();
+                logo_background.width = $this.width();
+                logo_background.height = $this.height();
+                logo_background.centerX = logo_background.offset.left + logo_background.width / 2;
+                logo_background.centerY = logo_background.offset.top + logo_background.height / 2;
+            };
 
-                window.onresize = function() {
-                    position_wordmark();
-                    position_content();
-                };
+            var position_wordmark = function() {
+                update_logo_background_state();
+                d3.select("#wordmark")
+                    .style("width", logo_background.width / WORDMARK_FRACTION + "px")
+                    .style("top", logo_background.centerY - parseInt($('#wordmark').height()) / 2 + "px")
+                    .style("left", logo_background.centerX - parseInt($('#wordmark').width()) / 2 + "px");
+            };
 
-                load_wordmark(trigger_resize);
-                load_nodes(trigger_resize);
+            var position_content = function() {
+                $('#content').css("padding-top", logo_background.height + "px");
+            };
 
+            var trigger_resize = function() {
+                console.log("trigger_resize");
+                setTimeout(function() {
+                    window.dispatchEvent(new Event('resize'));
+                }, 10);
+            }
+
+            window.addEventListener("load", function() {
+                svg_parent = document.getElementsByClassName('svg_container')[0];
+                load_wordmark(trigger_resize());
+                load_nodes(trigger_resize());
+            });
+
+            window.addEventListener("resize", function() {
+                console.log("resize triggered");
+                position_wordmark();
+                position_content();
             });
         </script>
     </body>
