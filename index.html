@@ -38,30 +38,6 @@
             var svg_parent = null;
             svg_parent = document.getElementsByClassName('svg_container')[0];
 
-            var load_wordmark = function(callback) {
-                var wordmark_path = "assets/components/wordmark.svg";
-                d3.xml(wordmark_path, "image/svg+xml", function(error, xml) {
-                    if (error) throw error;
-                    update_logo_background_state();
-                    xml.documentElement.setAttribute("preserveAspectRatio", "xMidYMid meet");
-                    xml.documentElement.setAttribute("class", "svg_content");
-                    xml.documentElement.style.width = "0px"; //logo_background.width / WORDMARK_FRACTION + "px";
-                    xml.documentElement.style.top = "-1000px"; //(logo_background.centerY - (159.6 / 2)) + "px";
-                    xml.documentElement.style.left = "-1000px"; //(logo_background.centerX - (343 / 2)) + "px";
-                    svg_parent.appendChild(xml.documentElement);
-                    if (callback) callback;
-                });
-            };
-
-            var load_nodes = function(callback) {
-                var nodes_path = "assets/components/nodes.svg";
-                d3.xml(nodes_path, "image/svg+xml", function(error, xml) {
-                    if (error) throw error;
-                    svg_nodes_xml = xml;
-                    if (callback) callback;
-                });
-            };
-
             var update_logo_background_state = function() {
                 var $this = $('#logo_background');
                 logo_background.offset = $this.offset();
@@ -84,13 +60,8 @@
             };
 
             var trigger_resize = function() {
-                console.log("trigger_resize");
+                console.log("trigger_resize called");
                 window.dispatchEvent(new Event('resize'));
-                /*
-                setTimeout(function() {
-                    window.dispatchEvent(new Event('resize'));
-                }, 50);
-                */
             }
 
             var logo_background_img_loaded = function() {
@@ -103,13 +74,46 @@
                 logo_background_img.addEventListener('load', logo_background_img_loaded);
             }
 
+            var load_wordmark = function(cb) {
+                console.log("load_wordmark called");
+                var wordmark_path = "assets/components/wordmark.svg";
+                d3.xml(wordmark_path, "image/svg+xml", function(error, xml, cb) {
+                    if (error) throw error;
+                    update_logo_background_state();
+                    xml.documentElement.setAttribute("preserveAspectRatio", "xMidYMid meet");
+                    xml.documentElement.setAttribute("class", "svg_content");
+                    xml.documentElement.style.width = "0px"; //logo_background.width / WORDMARK_FRACTION + "px";
+                    xml.documentElement.style.top = "-1000px"; //(logo_background.centerY - (159.6 / 2)) + "px";
+                    xml.documentElement.style.left = "-1000px"; //(logo_background.centerX - (343 / 2)) + "px";
+                    svg_parent.appendChild(xml.documentElement);
+                    if (cb) { 
+                        cb;
+                    }
+                    trigger_resize();
+                });
+            };
+
+            var load_nodes = function(cb) {
+                console.log("load_nodes called");
+                var nodes_path = "assets/components/nodes.svg";
+                d3.xml(nodes_path, "image/svg+xml", function(error, xml, cb) {
+                    if (error) throw error;
+                    svg_nodes_xml = xml;
+                    if (cb) { 
+                        cb;
+                    }
+                    trigger_resize();
+                });
+            };
+
             window.addEventListener("load", function() {
+                console.log("window load event");
                 load_nodes(trigger_resize());
                 load_wordmark(trigger_resize());
             });
 
             window.addEventListener("resize", function() {
-                console.log("resize triggered");
+                console.log("window resize event");
                 position_wordmark();
                 position_content();
             });
