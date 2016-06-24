@@ -84,7 +84,9 @@
                 };
 
                 var trigger_resize = function() {
-                    $(window).trigger('resize');
+                    setTimeout(function() {
+                        $(window).trigger('resize');
+                    }, 100);
                 }
 
                 window.onresize = function() {
@@ -94,10 +96,6 @@
 
                 load_wordmark(trigger_resize);
                 load_nodes(trigger_resize);
-
-                setTimeout(function() {
-                    $(window).trigger('resize');
-                }, 100);
 
             });
         </script>
