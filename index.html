@@ -97,7 +97,7 @@
             if (logo_background_img.complete) {
                 logo_background_img_loaded();
             } else {
-                logo_background_img.addEventListener('load', loaded);
+                logo_background_img.addEventListener('load', logo_background_img_loaded);
             }
 
             window.addEventListener("load", function() {
