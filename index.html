@@ -85,9 +85,12 @@
 
             var trigger_resize = function() {
                 console.log("trigger_resize");
+                window.dispatchEvent(new Event('resize'));
+                /*
                 setTimeout(function() {
                     window.dispatchEvent(new Event('resize'));
                 }, 50);
+                */
             }
 
             var logo_background_img_loaded = function() {
