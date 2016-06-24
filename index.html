@@ -35,6 +35,7 @@
             var logo_background = { offset : null, width : 0, height : 0, centerX : 0, centerY : 0 };
             var svg_nodes_xml = null;
             var svg_parent = null;
+            svg_parent = document.getElementsByClassName('svg_container')[0];
 
             var load_wordmark = function(callback) {
                 var wordmark_path = "assets/components/wordmark.svg";
@@ -91,7 +92,9 @@
             var logo_background_img = document.getElementById('logo_background');
 
             var logo_background_img_loaded = function() {
-                trigger_resize()
+                trigger_resize();
+                load_wordmark(trigger_resize());
+                load_nodes(trigger_resize());
             }
 
             if (logo_background_img.complete) {
@@ -101,9 +104,7 @@
             }
 
             window.addEventListener("load", function() {
-                svg_parent = document.getElementsByClassName('svg_container')[0];
-                load_wordmark(trigger_resize());
-                load_nodes(trigger_resize());
+                trigger_resize();
             });
 
             window.addEventListener("resize", function() {
