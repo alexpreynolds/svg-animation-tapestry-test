@@ -32,6 +32,7 @@
         <script type="text/javascript" src="//d3js.org/d3.v3.min.js"></script>
         <script type="text/javascript">
             const WORDMARK_FRACTION = 2.5; // higher is smaller
+            var logo_background_img = document.getElementById('logo_background');
             var logo_background = { offset : null, width : 0, height : 0, centerX : 0, centerY : 0 };
             var svg_nodes_xml = null;
             var svg_parent = null;
@@ -44,9 +45,9 @@
                     update_logo_background_state();
                     xml.documentElement.setAttribute("preserveAspectRatio", "xMidYMid meet");
                     xml.documentElement.setAttribute("class", "svg_content");
-                    xml.documentElement.style.width = logo_background.width / WORDMARK_FRACTION + "px";
-                    xml.documentElement.style.top = (logo_background.centerY - (159.6 / 2)) + "px";
-                    xml.documentElement.style.left = (logo_background.centerX - (343 / 2)) + "px";
+                    xml.documentElement.style.width = "0px"; //logo_background.width / WORDMARK_FRACTION + "px";
+                    xml.documentElement.style.top = "-1000px"; //(logo_background.centerY - (159.6 / 2)) + "px";
+                    xml.documentElement.style.left = "-1000px"; //(logo_background.centerX - (343 / 2)) + "px";
                     svg_parent.appendChild(xml.documentElement);
                     if (callback) callback;
                 });
@@ -86,25 +87,22 @@
                 console.log("trigger_resize");
                 setTimeout(function() {
                     window.dispatchEvent(new Event('resize'));
-                }, 10);
+                }, 50);
             }
-
-            var logo_background_img = document.getElementById('logo_background');
 
             var logo_background_img_loaded = function() {
                 trigger_resize();
-                load_wordmark(trigger_resize());
-                load_nodes(trigger_resize());
             }
 
             if (logo_background_img.complete) {
-                logo_background_img_loaded()
+                logo_background_img_loaded();
             } else {
                 logo_background_img.addEventListener('load', loaded);
             }
 
             window.addEventListener("load", function() {
-                trigger_resize();
+                load_nodes(trigger_resize());
+                load_wordmark(trigger_resize());
             });
 
             window.addEventListener("resize", function() {
