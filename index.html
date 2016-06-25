@@ -77,7 +77,7 @@
             var load_wordmark = function(cb) {
                 console.log("load_wordmark called");
                 var wordmark_path = "assets/components/wordmark.svg";
-                d3.xml(wordmark_path, "image/svg+xml", function(error, xml, cb) {
+                d3.xml(wordmark_path, "image/svg+xml", function(error, xml) {
                     if (error) throw error;
                     update_logo_background_state();
                     xml.documentElement.setAttribute("preserveAspectRatio", "xMidYMid meet");
@@ -86,30 +86,24 @@
                     xml.documentElement.style.top = "-1000px"; //(logo_background.centerY - (159.6 / 2)) + "px";
                     xml.documentElement.style.left = "-1000px"; //(logo_background.centerX - (343 / 2)) + "px";
                     svg_parent.appendChild(xml.documentElement);
-                    if (cb) { 
-                        cb;
-                    }
-                    trigger_resize();
+                    if (cb) cb();
                 });
             };
 
             var load_nodes = function(cb) {
                 console.log("load_nodes called");
                 var nodes_path = "assets/components/nodes.svg";
-                d3.xml(nodes_path, "image/svg+xml", function(error, xml, cb) {
+                d3.xml(nodes_path, "image/svg+xml", function(error, xml) {
                     if (error) throw error;
                     svg_nodes_xml = xml;
-                    if (cb) { 
-                        cb;
-                    }
-                    trigger_resize();
+                    if (cb) cb();
                 });
             };
 
             window.addEventListener("load", function() {
                 console.log("window load event");
-                load_nodes(trigger_resize());
-                load_wordmark(trigger_resize());
+                load_nodes(function() { trigger_resize(); });
+                load_wordmark(function() { trigger_resize(); });
             });
 
             window.addEventListener("resize", function() {
