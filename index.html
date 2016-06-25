@@ -60,7 +60,7 @@
             };
 
             var trigger_resize = function() {
-                console.log("trigger_resize called");
+                //console.log("trigger_resize called");
                 window.dispatchEvent(new Event('resize'));
             }
 
@@ -75,7 +75,7 @@
             }
 
             var load_wordmark = function(cb) {
-                console.log("load_wordmark called");
+                //console.log("load_wordmark called");
                 var wordmark_path = "assets/components/wordmark.svg";
                 d3.xml(wordmark_path, "image/svg+xml", function(error, xml) {
                     if (error) throw error;
@@ -91,7 +91,7 @@
             };
 
             var load_nodes = function(cb) {
-                console.log("load_nodes called");
+                //console.log("load_nodes called");
                 var nodes_path = "assets/components/nodes.svg";
                 d3.xml(nodes_path, "image/svg+xml", function(error, xml) {
                     if (error) throw error;
@@ -101,13 +101,13 @@
             };
 
             window.addEventListener("load", function() {
-                console.log("window load event");
+                //console.log("window load event");
                 load_nodes(function() { trigger_resize(); });
                 load_wordmark(function() { trigger_resize(); });
             });
 
             window.addEventListener("resize", function() {
-                console.log("window resize event");
+                //console.log("window resize event");
                 position_wordmark();
                 position_content();
             });
