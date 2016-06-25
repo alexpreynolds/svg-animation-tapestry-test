@@ -100,6 +100,9 @@
                 var node_layers_path = SVG_ASSET_ROOT + "nodes.svg";
                 d3.xml(node_layers_path, "image/svg+xml", function(error, xml) {
                     if (error) throw error;
+                    xml.documentElement.style.width = num_as_px(0);
+                    xml.documentElement.style.top = num_as_px(-1000);
+                    xml.documentElement.style.left = num_as_px(-1000);
                     node_layers_xml = xml;
                     node_layers_parent.appendChild(xml.documentElement);
                     if (cb) cb();
