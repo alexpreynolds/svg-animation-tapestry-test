@@ -39,7 +39,7 @@ img.logo_background:empty
     width: 100%;
 }
 
-.svg_container { 
+#svg_container { 
     display: inline-block;
     position: absolute;
     width: 100%;

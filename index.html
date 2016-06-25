@@ -9,7 +9,10 @@
     </head>
     <body>
         <div id="parent_container">
-            <div class="svg_container"></div>
+            <div id="svg_container">
+                <div id="node_layers_container"></div>
+                <div id="wordmark_container"></div>
+            </div>
             <div id="content">
                 <div class="main">
                     <p>Developing revolutionary technologies to empower breakthrough science</p>
@@ -31,12 +34,16 @@
         <script type="text/javascript" src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
         <script type="text/javascript" src="//d3js.org/d3.v3.min.js"></script>
         <script type="text/javascript">
-            const WORDMARK_FRACTION = 2.5; // higher is smaller
+
+            const WORDMARK_FRACTION = 2.5; // a higher value makes a smaller wordmark
+            const NODE_LAYERS = 14;
+            const SVG_ASSET_ROOT = "assets/components/";
+
             var logo_background_img = document.getElementById('logo_background');
             var logo_background = { offset : null, width : 0, height : 0, centerX : 0, centerY : 0 };
-            var svg_nodes_xml = null;
-            var svg_parent = null;
-            svg_parent = document.getElementsByClassName('svg_container')[0];
+            var node_layers_xml = null;
+            var svg_parent = document.getElementById('svg_container');
+            var wordmark_parent = document.getElementById('wordmark_container');
 
             var update_logo_background_state = function() {
                 var $this = $('#logo_background');
@@ -59,13 +66,12 @@
                 $('#content').css("padding-top", num_as_px(logo_background.height));
             };
 
-            var trigger_resize = function() {
-                //console.log("trigger_resize called");
+            var trigger_window_resize = function() {
                 window.dispatchEvent(new Event('resize'));
             }
 
             var logo_background_img_loaded = function() {
-                trigger_resize();
+                trigger_window_resize();
             }
 
             if (logo_background_img.complete) {
@@ -75,8 +81,7 @@
             }
 
             var load_wordmark = function(cb) {
-                //console.log("load_wordmark called");
-                var wordmark_path = "assets/components/wordmark.svg";
+                var wordmark_path = SVG_ASSET_ROOT + "wordmark.svg";
                 d3.xml(wordmark_path, "image/svg+xml", function(error, xml) {
                     if (error) throw error;
                     update_logo_background_state();
@@ -85,36 +90,43 @@
                     xml.documentElement.style.width = num_as_px(0);
                     xml.documentElement.style.top = num_as_px(-1000);
                     xml.documentElement.style.left = num_as_px(-1000);
-                    svg_parent.appendChild(xml.documentElement);
+                    wordmark_parent.appendChild(xml.documentElement);
                     if (cb) cb();
                 });
             };
 
-            var load_nodes = function(cb) {
-                //console.log("load_nodes called");
-                var nodes_path = "assets/components/nodes.svg";
-                d3.xml(nodes_path, "image/svg+xml", function(error, xml) {
+            var load_node_layers = function(cb) {
+                var node_layers_path = SVG_ASSET_ROOT + "nodes.svg";
+                d3.xml(node_layers_path, "image/svg+xml", function(error, xml) {
                     if (error) throw error;
-                    svg_nodes_xml = xml;
+                    node_layers_xml = xml;
                     if (cb) cb();
                 });
+            };
+
+            var init_node_layers = function() {
+                console.log("init_node_layers()");
             };
 
             var num_as_px = function(i) {
-                return i + "px";
+                return parseFloat(i) + "px";
             }
 
             window.addEventListener("load", function() {
-                //console.log("window load event");
-                load_nodes(function() { trigger_resize(); });
-                load_wordmark(function() { trigger_resize(); });
+                load_wordmark(function() { 
+                    trigger_window_resize(); 
+                });
+                load_node_layers(function() { 
+                    trigger_window_resize();
+                    init_node_layers();
+                });
             });
 
             window.addEventListener("resize", function() {
-                //console.log("window resize event");
                 position_wordmark();
                 position_content();
             });
+
         </script>
     </body>
     
