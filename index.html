@@ -50,13 +50,13 @@
             var position_wordmark = function() {
                 update_logo_background_state();
                 d3.select("#wordmark")
-                    .style("width", logo_background.width / WORDMARK_FRACTION + "px")
-                    .style("top", logo_background.centerY - parseInt($('#wordmark').height()) / 2 + "px")
-                    .style("left", logo_background.centerX - parseInt($('#wordmark').width()) / 2 + "px");
+                    .style("width", num_as_px(logo_background.width / WORDMARK_FRACTION))
+                    .style("top", num_as_px(logo_background.centerY - parseInt($('#wordmark').height()) / 2))
+                    .style("left", num_as_px(logo_background.centerX - parseInt($('#wordmark').width()) / 2))
             };
 
             var position_content = function() {
-                $('#content').css("padding-top", logo_background.height + "px");
+                $('#content').css("padding-top", num_as_px(logo_background.height));
             };
 
             var trigger_resize = function() {
@@ -82,9 +82,9 @@
                     update_logo_background_state();
                     xml.documentElement.setAttribute("preserveAspectRatio", "xMidYMid meet");
                     xml.documentElement.setAttribute("class", "svg_content");
-                    xml.documentElement.style.width = "0px"; //logo_background.width / WORDMARK_FRACTION + "px";
-                    xml.documentElement.style.top = "-1000px"; //(logo_background.centerY - (159.6 / 2)) + "px";
-                    xml.documentElement.style.left = "-1000px"; //(logo_background.centerX - (343 / 2)) + "px";
+                    xml.documentElement.style.width = num_as_px(0);
+                    xml.documentElement.style.top = num_as_px(-1000);
+                    xml.documentElement.style.left = num_as_px(-1000);
                     svg_parent.appendChild(xml.documentElement);
                     if (cb) cb();
                 });
@@ -99,6 +99,10 @@
                     if (cb) cb();
                 });
             };
+
+            var num_as_px = function(i) {
+                return i + "px";
+            }
 
             window.addEventListener("load", function() {
                 //console.log("window load event");
