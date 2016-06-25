@@ -26,7 +26,6 @@
                 </div>
             </div>
             <div id="background"><img src="assets/img/background.jpg" alt="Altius Institute for Biomedical Sciences" id="logo_background" class="logo_background" /></div>
-            
         </div>
         
         <script type="text/javascript" src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
@@ -35,7 +34,7 @@
 
             const WORDMARK_FRACTION = 2.5; // a higher value makes a smaller wordmark
             const NODE_LAYERS = 14;
-            const NODE_LAYER_ROWS = 10;
+            const NODE_LAYER_ROWS = 8;
             const NODE_LAYER_ID_PREFIX = "node_layer_";
             const SVG_ASSET_ROOT = "assets/components/";
 
@@ -55,14 +54,6 @@
                 logo_background.height = $this.height();
                 logo_background.centerX = logo_background.offset.left + logo_background.width / 2;
                 logo_background.centerY = logo_background.offset.top + logo_background.height / 2;
-            };
-
-            var position_wordmark = function() {
-                update_logo_background_state();
-                d3.select("#wordmark")
-                    .style("width", num_as_px(logo_background.width / WORDMARK_FRACTION))
-                    .style("top", num_as_px(logo_background.centerY - parseInt($('#wordmark').height()) / 2))
-                    .style("left", num_as_px(logo_background.centerX - parseInt($('#wordmark').width()) / 2))
             };
 
             var position_content = function() {
@@ -96,6 +87,14 @@
                     wordmark_parent.appendChild(xml.documentElement);
                     if (cb) cb();
                 });
+            };
+
+            var position_wordmark = function() {
+                update_logo_background_state();
+                d3.select("#wordmark")
+                    .style("width", num_as_px(logo_background.width / WORDMARK_FRACTION))
+                    .style("top", num_as_px(logo_background.centerY - parseInt($('#wordmark').height()) / 2 - parseInt($('#parent_container').css("margin-top"))))
+                    .style("left", num_as_px(logo_background.centerX - parseInt($('#wordmark').width()) / 2))
             };
 
             var load_node_layers = function(cb) {
@@ -135,7 +134,7 @@
                             .attr("xlink:href", "#" + random_node_layer_id())
                             .attr("transform", "scale(" + node_layer_scale_factor + ")");
                         var col_shift = (col_idx % 2) ? 0 : node_layer_max_height / 2;
-                        var row_shift = 0;
+                        var row_shift = node_layer_max_width / 2;
                         $('#' + layer_id).css("top", row_idx * (node_layer_max_height + node_layer_margin.top + node_layer_margin.bottom) - col_shift);
                         $('#' + layer_id).css("left", col_idx * (node_layer_max_width + node_layer_margin.left + node_layer_margin.right) - row_shift);
                     }
@@ -153,8 +152,9 @@
                     for (var col_idx = 0; col_idx < node_layer_cols; col_idx++) {
                         var layer_id = row_idx + "_" + col_idx;
                         var col_shift = (col_idx % 2) ? 0 : node_layer_max_height / 2;
+                        var row_shift = node_layer_max_width / 2;
                         $('#' + layer_id).css("top", row_idx * (node_layer_max_height + node_layer_margin.top + node_layer_margin.bottom) - col_shift);
-                        $('#' + layer_id).css("left", col_idx * (node_layer_max_width + node_layer_margin.left + node_layer_margin.right) - node_layer_max_width / 2);
+                        $('#' + layer_id).css("left", col_idx * (node_layer_max_width + node_layer_margin.left + node_layer_margin.right) - row_shift);
                     }
                 }
                 d3.selectAll('.random_node_layer')

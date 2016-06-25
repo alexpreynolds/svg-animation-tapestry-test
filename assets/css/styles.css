@@ -9,7 +9,7 @@ body {
 }
 
 img.logo_background {
-    position: absolute;
+    position: relative;
     max-width: 100%;
     top: 0%;
     left: 0%;
@@ -27,6 +27,7 @@ img.logo_background:empty {
 
 #parent_container {
     font-family: 'Open Sans', sans-serif;
+    margin-top: 40px;
 }
 
 #content {
