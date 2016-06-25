@@ -12,6 +12,7 @@
 	.st6{fill:#567EAD;}
 	.st7{fill:#0084C8;}
 </style>
+<defs>
 <g id="node_background_color">
 	<rect width="216" height="216" style="fill:rgba(0,0,0,0.1);" />
 </g>
@@ -290,4 +291,5 @@
 			c1.9-3.3,2.9-7.1,2.9-11L167.7,151.2L167.7,151.2z"/>
 	</g>
 </g>
+</defs>
 </svg>

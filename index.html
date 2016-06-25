@@ -25,9 +25,7 @@
                     </p>
                 </div>
             </div>
-            <div id="background">
-                <img src="assets/img/background.jpg" alt="Altius Institute for Biomedical Sciences" id="logo_background" class="logo_background" />
-            </div>
+            <div id="background"><img src="assets/img/background.jpg" alt="Altius Institute for Biomedical Sciences" id="logo_background" class="logo_background" /></div>
             
         </div>
         
@@ -37,6 +35,8 @@
 
             const WORDMARK_FRACTION = 2.5; // a higher value makes a smaller wordmark
             const NODE_LAYERS = 14;
+            const NODE_LAYER_ROWS = 13;
+            const NODE_LAYER_ID_PREFIX = "node_layer_";
             const SVG_ASSET_ROOT = "assets/components/";
 
             var logo_background_img = document.getElementById('logo_background');
@@ -44,6 +44,7 @@
             var node_layers_xml = null;
             var svg_parent = document.getElementById('svg_container');
             var wordmark_parent = document.getElementById('wordmark_container');
+            var node_layers_parent = document.getElementById('node_layers_container');
 
             var update_logo_background_state = function() {
                 var $this = $('#logo_background');
@@ -100,17 +101,51 @@
                 d3.xml(node_layers_path, "image/svg+xml", function(error, xml) {
                     if (error) throw error;
                     node_layers_xml = xml;
+                    node_layers_parent.appendChild(xml.documentElement);
                     if (cb) cb();
                 });
             };
 
             var init_node_layers = function() {
-                console.log("init_node_layers()");
+                update_logo_background_state();
+                var node_layer_margin = {top: 1, right: 1, bottom: 1, left: 1};
+                var node_layer_max_height = (logo_background.height - (NODE_LAYER_ROWS * (node_layer_margin.top + node_layer_margin.bottom))) / NODE_LAYER_ROWS;
+                var node_layer_max_width = node_layer_max_height;
+                var node_layer_rows = NODE_LAYER_ROWS + 1;
+                var node_layer_cols = Math.ceil(logo_background.width / node_layer_max_width) + 1;
+                var node_layer_scale_factor = 1 / (180 / node_layer_max_height);
+                
+                for (var row_idx = 0; row_idx < node_layer_rows; row_idx++) {
+                    for (var col_idx = 0; col_idx < node_layer_cols; col_idx++) {
+                        
+                        var layer_id = row_idx + "_" + col_idx + "_" + random_node_layer_id();
+                        var layer_classes = "node_layer_container nlrow_" + row_idx + " nlcol_" + col_idx;
+                        d3.select("#node_layers_container")
+                            .append("svg")
+                            .attr("id", layer_id)
+                            .attr("class", layer_classes)
+                            .attr("width", node_layer_max_width + node_layer_margin.left + node_layer_margin.right)
+                            .attr("height", node_layer_max_height + node_layer_margin.top + node_layer_margin.bottom)
+                            .append("g")
+                            .attr("transform", "translate(" + node_layer_margin.left + "," + node_layer_margin.top + ")")
+                            .append("use")
+                            .attr("class", "random_node_layer")
+                            .attr("xlink:href", "#" + random_node_layer_id())
+                            .attr("transform", "scale(" + node_layer_scale_factor + ")");
+                        var col_shift = (col_idx % 2) ? 0 : node_layer_max_height / 2;
+                        $('#' + layer_id).css("top", row_idx * (node_layer_max_height + node_layer_margin.top + node_layer_margin.bottom) - col_shift);
+                        $('#' + layer_id).css("left", col_idx * (node_layer_max_width + node_layer_margin.left + node_layer_margin.right) - node_layer_max_width / 2);
+                    }
+                }
             };
 
             var num_as_px = function(i) {
                 return parseFloat(i) + "px";
-            }
+            };
+
+            var random_node_layer_id = function() {
+                return NODE_LAYER_ID_PREFIX + Math.ceil(Math.random() * NODE_LAYERS);
+            };
 
             window.addEventListener("load", function() {
                 load_wordmark(function() { 
