@@ -10,7 +10,7 @@
 </filter>
 <g id="wordmark_parent_group">
 	<g>
-		<ellipse cx="115" cy="405" rx="140" ry="60" style="fill:rgba(255,255,255,0.9); stroke:none; stroke-width:none; filter:url(#blur-effect-1);" />
+		<ellipse cx="115" cy="405" rx="140" ry="60" style="fill:rgba(255,255,255,1); stroke:none; stroke-width:none; filter:url(#blur-effect-1);" />
 	</g>
 	<g>
 		<path class="st0" d="M-16.7,427.9v-16.7h4.3v16.7H-16.7z"/>
