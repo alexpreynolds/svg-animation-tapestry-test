@@ -6,6 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" type="text/css" href="assets/css/styles.css" media="screen">
         <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+        <!-- cf. http://www.favicomatic.com -->
         <link rel="apple-touch-icon-precomposed" sizes="57x57" href="assets/favico/apple-touch-icon-57x57.png" />
         <link rel="apple-touch-icon-precomposed" sizes="114x114" href="assets/favico/apple-touch-icon-114x114.png" />
         <link rel="apple-touch-icon-precomposed" sizes="72x72" href="assets/favico/apple-touch-icon-72x72.png" />
@@ -33,7 +34,7 @@
                 <div id="node_layers_container"></div>
                 <div id="wordmark_container"></div>
             </div>
-            <div id="content">
+            <div id="content" style="opacity:0;">
                 <div class="main">
                     <p>Developing revolutionary technologies to empower breakthrough science</p>
                     <p>Creating a new scientific environment that radically enables exceptionally talented individuals to do the best work of their lives</p>
@@ -53,10 +54,14 @@
         <script type="text/javascript">
 
             const WORDMARK_FRACTION = 2.5; // a higher value makes a smaller wordmark
+            const WORDMARK_EASE_FN = "cubic";
+            const WORDMARK_EASE_DURATION = 1000;
             const NODE_LAYERS = 14;
             const NODE_LAYER_ROWS = 9;
             const NODE_LAYER_ID_PREFIX = "node_layer_";
             const SVG_ASSET_ROOT = "assets/components/";
+            const CONTENT_EASE_FN = "cubic";
+            const CONTENT_EASE_DURATION = 1000;
 
             var logo_background_img = document.getElementById('logo_background');
             var logo_background = { offset : null, width : 0, height : 0, centerX : 0, centerY : 0 };
@@ -78,6 +83,9 @@
 
             var position_content = function() {
                 $('#content').css("padding-top", num_as_px(logo_background.height));
+                if ($('#content').css("opacity") == 0) {
+                    d3.select('#content').transition().ease(CONTENT_EASE_FN).duration(CONTENT_EASE_DURATION).style('opacity', 1);
+                }
             };
 
             var trigger_window_resize = function() {
@@ -104,6 +112,7 @@
                     xml.documentElement.style.width = num_as_px(0);
                     xml.documentElement.style.top = num_as_px(-1000);
                     xml.documentElement.style.left = num_as_px(-1000);
+                    xml.documentElement.style.opacity = 0;
                     wordmark_parent.appendChild(xml.documentElement);
                     if (cb) cb();
                 });
@@ -111,10 +120,13 @@
 
             var position_wordmark = function() {
                 update_logo_background_state();
-                d3.select("#wordmark")
-                    .style("width", num_as_px(logo_background.width / WORDMARK_FRACTION))
+                var wordmark = d3.select("#wordmark");
+                wordmark.style("width", num_as_px(logo_background.width / WORDMARK_FRACTION))
                     .style("top", num_as_px(logo_background.centerY - parseInt($('#wordmark').height()) / 2 - parseInt($('#parent_container').css("margin-top"))))
                     .style("left", num_as_px(logo_background.centerX - parseInt($('#wordmark').width()) / 2))
+                if (wordmark.style("opacity") == 0) {
+                    wordmark.transition().ease(WORDMARK_EASE_FN).duration(WORDMARK_EASE_DURATION).style('opacity', 1);
+                }
             };
 
             var load_node_layers = function(cb) {
