@@ -41,7 +41,7 @@
             var logo_background_img = document.getElementById('logo_background');
             var logo_background = { offset : null, width : 0, height : 0, centerX : 0, centerY : 0 };
             var node_layers_xml = null;
-            var node_layer_margin = { top : 2, right : 2, bottom : 2, left : 2 };
+            var node_layer_margin = { top : 0, right : 0, bottom : 0, left : 0 };
 
             var svg_parent = document.getElementById('svg_container');
             var wordmark_parent = document.getElementById('wordmark_container');
@@ -117,8 +117,6 @@
                 var node_layer_max_width = node_layer_max_height;
                 var node_layer_rows = NODE_LAYER_ROWS + 1;
                 var node_layer_cols = Math.ceil(logo_background.width / node_layer_max_width) + 1;
-                //var node_layer_scale_factor = 1 / (180 / node_layer_max_height);
-                //console.log(node_layer_scale_factor);
                 for (var row_idx = 0; row_idx < node_layer_rows; row_idx++) {
                     for (var col_idx = 0; col_idx < node_layer_cols; col_idx++) {
                         var layer_id = row_idx + "_" + col_idx;
@@ -135,7 +133,6 @@
                             .append("use")
                             .attr("class", "random_node_layer" + (col_idx % 2 ? " random_node_layer_even" : " random_node_layer_odd"))
                             .attr("xlink:href", "#" + random_node_layer_id());
-                            //.attr("transform", "scale(" + node_layer_scale_factor + ") rotate(0)");
                         var col_shift = (col_idx % 2) ? 0 : node_layer_max_height / 2;
                         var row_shift = node_layer_max_width / 2;
                         $('#' + layer_id).css("top", row_idx * (node_layer_max_height + node_layer_margin.top + node_layer_margin.bottom) - col_shift);
@@ -147,12 +144,11 @@
             var position_node_layers = function() {
                 update_logo_background_state();
                 $('#node_layers_container').height(logo_background.height);
+                $('#svg_container').css("max-height", num_as_px(logo_background.height));
                 var node_layer_max_height = (logo_background.height - (NODE_LAYER_ROWS * (node_layer_margin.top + node_layer_margin.bottom))) / NODE_LAYER_ROWS;
                 var node_layer_max_width = node_layer_max_height;
                 var node_layer_rows = NODE_LAYER_ROWS + 1;
                 var node_layer_cols = Math.ceil(logo_background.width / node_layer_max_width) + 1;
-                //var node_layer_scale_factor = 1 / (180 / node_layer_max_height);
-                //console.log(node_layer_scale_factor);
                 for (var row_idx = 0; row_idx < node_layer_rows; row_idx++) {
                     for (var col_idx = 0; col_idx < node_layer_cols; col_idx++) {
                         var layer_id = row_idx + "_" + col_idx;
@@ -164,8 +160,6 @@
                         $('#' + layer_id).css("left", col_idx * (node_layer_max_width + node_layer_margin.left + node_layer_margin.right) - row_shift);
                     }
                 }
-                //d3.selectAll('.random_node_layer').attr("transform", "scale(" + node_layer_scale_factor + ") rotate(0)");
-                $('#svg_container').css("max-height", num_as_px(logo_background.height));
             };
 
             var num_as_px = function(i) {
@@ -187,9 +181,13 @@
             });
 
             window.addEventListener("resize", function() {
-                position_wordmark();
-                position_content();
-                position_node_layers();
+                if (this.resize_window_timer)
+                    clearTimeout(this.resize_window_timer);
+                this.resize_window_timer = setTimeout(function() { 
+                    position_wordmark();
+                    position_content();
+                    position_node_layers();
+                }, 200);
             });
 
         </script>
