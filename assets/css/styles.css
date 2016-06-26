@@ -1,7 +1,6 @@
 body {
     margin: 0;
     padding: 0;
-    overflow: hidden;
 }
 
 #background {
@@ -43,7 +42,6 @@ img.logo_background:empty {
     display: inline-block;
     position: absolute;
     width: 100%;
-    padding-bottom: 100%; 
     vertical-align: middle; 
     overflow: hidden; 
     z-index: 1000;
@@ -51,6 +49,7 @@ img.logo_background:empty {
 
 #node_layers_container {
     position: relative;
+    overflow: hidden;
 }
 
 .svg_content { 
@@ -63,6 +62,10 @@ img.logo_background:empty {
 .node_layer_container {
     display: block;
     position: absolute;
+}
+
+.random_node_layer {
+    transform-origin: 0% 0%;
 }
 
 .main, .contact {
