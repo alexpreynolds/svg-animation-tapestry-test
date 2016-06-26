@@ -34,14 +34,14 @@
 
             const WORDMARK_FRACTION = 2.5; // a higher value makes a smaller wordmark
             const NODE_LAYERS = 14;
-            const NODE_LAYER_ROWS = 8;
+            const NODE_LAYER_ROWS = 9;
             const NODE_LAYER_ID_PREFIX = "node_layer_";
             const SVG_ASSET_ROOT = "assets/components/";
 
             var logo_background_img = document.getElementById('logo_background');
             var logo_background = { offset : null, width : 0, height : 0, centerX : 0, centerY : 0 };
             var node_layers_xml = null;
-            var node_layer_margin = {top: 5, right: 5, bottom: 5, left: 5};
+            var node_layer_margin = { top : 2, right : 2, bottom : 2, left : 2 };
 
             var svg_parent = document.getElementById('svg_container');
             var wordmark_parent = document.getElementById('wordmark_container');
@@ -135,7 +135,7 @@
                             .attr("xlink:href", "#" + random_node_layer_id())
                             .attr("transform", "scale(" + node_layer_scale_factor + ") rotate(0)");
                         var col_shift = (col_idx % 2) ? 0 : node_layer_max_height / 2;
-                        var row_shift = 0; node_layer_max_width / 2;
+                        var row_shift = node_layer_max_width / 2;
                         $('#' + layer_id).css("top", row_idx * (node_layer_max_height + node_layer_margin.top + node_layer_margin.bottom) - col_shift);
                         $('#' + layer_id).css("left", col_idx * (node_layer_max_width + node_layer_margin.left + node_layer_margin.right) - row_shift);
                     }
