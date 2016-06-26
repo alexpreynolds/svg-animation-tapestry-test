@@ -117,7 +117,8 @@
                 var node_layer_max_width = node_layer_max_height;
                 var node_layer_rows = NODE_LAYER_ROWS + 1;
                 var node_layer_cols = Math.ceil(logo_background.width / node_layer_max_width) + 1;
-                var node_layer_scale_factor = 1 / (180 / (node_layer_max_height));
+                //var node_layer_scale_factor = 1 / (180 / node_layer_max_height);
+                //console.log(node_layer_scale_factor);
                 for (var row_idx = 0; row_idx < node_layer_rows; row_idx++) {
                     for (var col_idx = 0; col_idx < node_layer_cols; col_idx++) {
                         var layer_id = row_idx + "_" + col_idx;
@@ -128,12 +129,13 @@
                             .attr("class", layer_classes)
                             .attr("width", node_layer_max_width + node_layer_margin.left + node_layer_margin.right)
                             .attr("height", node_layer_max_height + node_layer_margin.top + node_layer_margin.bottom)
+                            .attr("viewBox", "0 0 216 216")
                             .append("g")
                             .attr("transform", "translate(" + node_layer_margin.left + "," + node_layer_margin.top + ")")
                             .append("use")
                             .attr("class", "random_node_layer" + (col_idx % 2 ? " random_node_layer_even" : " random_node_layer_odd"))
-                            .attr("xlink:href", "#" + random_node_layer_id())
-                            .attr("transform", "scale(" + node_layer_scale_factor + ") rotate(0)");
+                            .attr("xlink:href", "#" + random_node_layer_id());
+                            //.attr("transform", "scale(" + node_layer_scale_factor + ") rotate(0)");
                         var col_shift = (col_idx % 2) ? 0 : node_layer_max_height / 2;
                         var row_shift = node_layer_max_width / 2;
                         $('#' + layer_id).css("top", row_idx * (node_layer_max_height + node_layer_margin.top + node_layer_margin.bottom) - col_shift);
@@ -149,18 +151,20 @@
                 var node_layer_max_width = node_layer_max_height;
                 var node_layer_rows = NODE_LAYER_ROWS + 1;
                 var node_layer_cols = Math.ceil(logo_background.width / node_layer_max_width) + 1;
-                var node_layer_scale_factor = 1 / (180 / node_layer_max_height);
+                //var node_layer_scale_factor = 1 / (180 / node_layer_max_height);
+                //console.log(node_layer_scale_factor);
                 for (var row_idx = 0; row_idx < node_layer_rows; row_idx++) {
                     for (var col_idx = 0; col_idx < node_layer_cols; col_idx++) {
                         var layer_id = row_idx + "_" + col_idx;
                         var col_shift = (col_idx % 2) ? 0 : node_layer_max_height / 2;
                         var row_shift = node_layer_max_width / 2;
+                        $('#' + layer_id).css("width", node_layer_max_width + node_layer_margin.left + node_layer_margin.right);
+                        $('#' + layer_id).css("height", node_layer_max_height + node_layer_margin.top + node_layer_margin.bottom);
                         $('#' + layer_id).css("top", row_idx * (node_layer_max_height + node_layer_margin.top + node_layer_margin.bottom) - col_shift);
                         $('#' + layer_id).css("left", col_idx * (node_layer_max_width + node_layer_margin.left + node_layer_margin.right) - row_shift);
                     }
                 }
-                d3.selectAll('.random_node_layer')
-                    .attr("transform", "scale(" + node_layer_scale_factor + ") rotate(0)");
+                //d3.selectAll('.random_node_layer').attr("transform", "scale(" + node_layer_scale_factor + ") rotate(0)");
                 $('#svg_container').css("max-height", num_as_px(logo_background.height));
             };
 
