@@ -2,11 +2,10 @@
 <html lang="en-us">
     <head>
         <meta charset="UTF-8">
-        <title>svg-animation-tapestry-test</title>
+        <title>Altius Insitute for Biomedical Sciences</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" type="text/css" href="assets/css/styles.css" media="screen">
         <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
-
         <!-- cf. http://www.favicomatic.com -->
         <link rel="apple-touch-icon-precomposed" sizes="57x57" href="assets/favico/apple-touch-icon-57x57.png" />
         <link rel="apple-touch-icon-precomposed" sizes="114x114" href="assets/favico/apple-touch-icon-114x114.png" />
@@ -52,10 +51,13 @@
         
         <!-- cf. https://github.com/petkaantonov/deque -->
         <script type="text/javascript" src="assets/js/deque.min.js"></script>
+        <script type="text/javascript" src="assets/js/guid.min.js"></script>
 
+        <!-- external frameworks -->
         <script type="text/javascript" src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
         <script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
         
+        <!-- my code -->
         <script type="text/javascript">
 
             const WORDMARK_SCALE = 1.85; // a higher value makes a smaller wordmark
@@ -79,6 +81,7 @@
             var logo_background_img = document.getElementById('logo_background');
             var logo_background = { offset : null, width : 0, height : 0, centerX : 0, centerY : 0 };
             var node_layers_xml = null;
+            var node_layers_deque = new Deque();
             var node_layer_margin = { top : 0, right : 0, bottom : 0, left : 0 };
 
             var svg_parent = document.getElementById('svg_container');
@@ -161,50 +164,72 @@
                 $('#node_layers_container').css("opacity", 0);
                 var node_layer_max_height = (logo_background.height - (NODE_LAYER_ROWS * (node_layer_margin.top + node_layer_margin.bottom))) / NODE_LAYER_ROWS;
                 var node_layer_max_width = node_layer_max_height;
-                var node_layer_rows = NODE_LAYER_ROWS + 1;
+                var node_layer_rows = NODE_LAYER_ROWS;
                 var node_layer_cols = (1 / NODE_COL_SQUEEZE_FACTOR) * Math.ceil(logo_background.width / node_layer_max_width);
+                /* node layers are added by row */
                 for (var row_idx = 0; row_idx < node_layer_rows; row_idx++) {
+                    var node_layer_row = [];
                     for (var col_idx = 0; col_idx < node_layer_cols; col_idx++) {
-                        var layer_id = row_idx + "_" + col_idx;
+                        var col_shift = (col_idx % 2) ? 0 : node_layer_max_height / 2;
+                        var row_shift = node_layer_max_width / 2;
+                        // build a data model for the offset and size of a node layer
+                        var node_layer_obj = {};
+                        node_layer_obj['id'] = Math.guid();
+                        node_layer_obj['static'] = true;
+                        node_layer_obj['top'] = (row_idx * (node_layer_max_height + node_layer_margin.top + node_layer_margin.bottom) - col_shift) * NODE_ROW_SQUEEZE_FACTOR;
+                        node_layer_obj['left'] = col_idx * NODE_COL_SQUEEZE_FACTOR * (node_layer_max_width + node_layer_margin.left + node_layer_margin.right) - row_shift;
+                        node_layer_obj['width'] = NODE_LAYER_SCALE * node_layer_max_width + node_layer_margin.left + node_layer_margin.right;
+                        node_layer_obj['height'] = NODE_LAYER_SCALE * node_layer_max_height + node_layer_margin.top + node_layer_margin.bottom;
+                        node_layer_row.push(node_layer_obj);
+                        // render UI element from data model
+                        var layer_id = node_layer_obj['id'];
                         var layer_classes = "node_layer_container nlrow_" + row_idx + " nlcol_" + col_idx;
                         d3.select("#node_layers_container")
                             .append("svg")
                             .attr("id", layer_id)
                             .attr("class", layer_classes)
-                            .attr("width", NODE_LAYER_SCALE * node_layer_max_width + node_layer_margin.left + node_layer_margin.right)
-                            .attr("height", NODE_LAYER_SCALE * node_layer_max_height + node_layer_margin.top + node_layer_margin.bottom)
+                            .attr("width", node_layer_obj['width'])
+                            .attr("height", node_layer_obj['height'])
                             .attr("viewBox", "0 0 216 216")
                             .append("g")
                             .attr("transform", "translate(" + node_layer_margin.left + "," + node_layer_margin.top + ")")
                             .append("use")
                             .attr("class", "random_node_layer" + (col_idx % 2 ? " random_node_layer_even" : " random_node_layer_odd"))
                             .attr("xlink:href", "#" + random_node_layer_id());
-                        var col_shift = (col_idx % 2) ? 0 : node_layer_max_height / 2;
-                        var row_shift = node_layer_max_width / 2;
-                        $('#' + layer_id).css("top", num_as_px((row_idx * (node_layer_max_height + node_layer_margin.top + node_layer_margin.bottom) - col_shift) * NODE_ROW_SQUEEZE_FACTOR));
-                        $('#' + layer_id).css("left", num_as_px(col_idx * NODE_COL_SQUEEZE_FACTOR * (node_layer_max_width + node_layer_margin.left + node_layer_margin.right) - row_shift));
+                        $('#' + layer_id).css("top", num_as_px(node_layer_obj['top']));
+                        $('#' + layer_id).css("left", num_as_px(node_layer_obj['left']));
                     }
+                    node_layers_deque.push(node_layer_row);
                 }
                 d3.select('#node_layers_container').transition().ease(NODE_LAYERS_EASE_FN).duration(NODE_LAYERS_EASE_DURATION_MS).style('opacity', NODE_LAYERS_FINAL_OPACITY);
             };
 
             var position_node_layers = function() {
+                //console.log(node_layers_deque);
                 update_logo_background_state();
                 $('#node_layers_container').height(logo_background.height);
                 $('#svg_container').css("max-height", num_as_px(logo_background.height));
                 var node_layer_max_height = (logo_background.height - (NODE_LAYER_ROWS * (node_layer_margin.top + node_layer_margin.bottom))) / NODE_LAYER_ROWS;
                 var node_layer_max_width = node_layer_max_height;
-                var node_layer_rows = NODE_LAYER_ROWS + 1;
+                var node_layer_rows = NODE_LAYER_ROWS;
                 var node_layer_cols = (1 / NODE_COL_SQUEEZE_FACTOR) * Math.ceil(logo_background.width / node_layer_max_width);
                 for (var row_idx = 0; row_idx < node_layer_rows; row_idx++) {
+                    var node_layer_row = node_layers_deque.get(row_idx);
                     for (var col_idx = 0; col_idx < node_layer_cols; col_idx++) {
-                        var layer_id = row_idx + "_" + col_idx;
+                        var node_layer_obj = node_layer_row[col_idx];
+                        var layer_id = node_layer_obj['id'];
                         var col_shift = (col_idx % 2) ? 0 : node_layer_max_height / 2;
                         var row_shift = node_layer_max_width / 2;
-                        $('#' + layer_id).css("width", NODE_LAYER_SCALE * node_layer_max_width + node_layer_margin.left + node_layer_margin.right);
-                        $('#' + layer_id).css("height", NODE_LAYER_SCALE * node_layer_max_height + node_layer_margin.top + node_layer_margin.bottom);
-                        $('#' + layer_id).css("top", num_as_px((row_idx * (node_layer_max_height + node_layer_margin.top + node_layer_margin.bottom) - col_shift) * NODE_ROW_SQUEEZE_FACTOR));
-                        $('#' + layer_id).css("left", num_as_px(col_idx * NODE_COL_SQUEEZE_FACTOR * (node_layer_max_width + node_layer_margin.left + node_layer_margin.right) - row_shift));
+                        /* update model */
+                        node_layer_obj['top'] = (row_idx * (node_layer_max_height + node_layer_margin.top + node_layer_margin.bottom) - col_shift) * NODE_ROW_SQUEEZE_FACTOR;
+                        node_layer_obj['left'] = col_idx * NODE_COL_SQUEEZE_FACTOR * (node_layer_max_width + node_layer_margin.left + node_layer_margin.right) - row_shift;
+                        node_layer_obj['width'] = NODE_LAYER_SCALE * node_layer_max_width + node_layer_margin.left + node_layer_margin.right;
+                        node_layer_obj['height'] = NODE_LAYER_SCALE * node_layer_max_height + node_layer_margin.top + node_layer_margin.bottom;
+                        /* update UI */
+                        $('#' + layer_id).css("width", num_as_px(node_layer_obj['width']));
+                        $('#' + layer_id).css("height", num_as_px(node_layer_obj['height']));
+                        $('#' + layer_id).css("top", num_as_px(node_layer_obj['top']));
+                        $('#' + layer_id).css("left", num_as_px(node_layer_obj['left']));
                     }
                 }
             };
