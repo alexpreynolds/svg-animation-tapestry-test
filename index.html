@@ -87,7 +87,7 @@
             var node_layers_xml = null;
             var node_layers_deque = new Deque();
             var node_layers_ids = [];
-            var node_layers_animating = [];
+            var node_layers_animating = new Deque();
             var node_layers_visible = false;
             var node_layer_margin = { top : 0, right : 0, bottom : 0, left : 0 };
             var node_layers = { max_height : 0, max_width : 0, rows : 0, cols : 0 };
@@ -259,7 +259,7 @@
                         for (var col_idx = 0; col_idx < node_layers.cols; col_idx++) {
                             var node_layer_obj = node_layer_row[col_idx];
                             var layer_id = node_layer_obj['id'];
-                            if (node_layers_animating.indexOf(layer_id) != -1) {
+                            if (node_layers_animating.toArray().indexOf(layer_id) != -1) {
                                 node_layer_obj['static'] = false;
                                 d3.select("#" + layer_id)
                                     .selectAll('.node_layer_transform')
@@ -292,7 +292,7 @@
                 });
                 load_node_layers(function() { 
                     trigger_window_resize();
-                    init_node_layers( function() { animate_random_node_layers(42); } );
+                    init_node_layers( function() { animate_random_node_layers(25); } );
                 });
                 if (logo_background_img.complete) {
                     logo_background_img_loaded();
