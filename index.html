@@ -53,16 +53,21 @@
         <script type="text/javascript" src="//d3js.org/d3.v3.min.js"></script>
         <script type="text/javascript">
 
-            const WORDMARK_FRACTION = 2.5; // a higher value makes a smaller wordmark
+            const WORDMARK_FRACTION = 1.85; // a higher value makes a smaller wordmark
             const WORDMARK_EASE_FN = "cubic";
-            const WORDMARK_EASE_DURATION = 1000;
+            const WORDMARK_EASE_DURATION_MS = 750;
+            const WORDMARK_FINAL_OPACITY = 1;
             const NODE_LAYERS = 14;
-            const NODE_LAYER_ROWS = 6;
+            const NODE_LAYER_ROWS = 5;
             const NODE_LAYER_ID_PREFIX = "node_layer_";
             const NODE_COL_SQUEEZE_FACTOR = 0.30;
+            const NODE_LAYERS_EASE_FN = "cubic";
+            const NODE_LAYERS_EASE_DURATION_MS = 1500;
+            const NODE_LAYERS_FINAL_OPACITY = 1;
             const SVG_ASSET_ROOT = "assets/components/";
             const CONTENT_EASE_FN = "cubic";
-            const CONTENT_EASE_DURATION = 1000;
+            const CONTENT_EASE_DURATION_MS = 750;
+            const CONTENT_FINAL_OPACITY = 1;
 
             var logo_background_img = document.getElementById('logo_background');
             var logo_background = { offset : null, width : 0, height : 0, centerX : 0, centerY : 0 };
@@ -85,7 +90,7 @@
             var position_content = function() {
                 $('#content').css("padding-top", num_as_px(logo_background.height));
                 if ($('#content').css("opacity") == 0) {
-                    d3.select('#content').transition().ease(CONTENT_EASE_FN).duration(CONTENT_EASE_DURATION).style('opacity', 1);
+                    d3.select('#content').transition().ease(CONTENT_EASE_FN).duration(CONTENT_EASE_DURATION_MS).style('opacity', CONTENT_FINAL_OPACITY);
                 }
             };
 
@@ -126,7 +131,7 @@
                     .style("top", num_as_px(logo_background.centerY - parseInt($('#wordmark').height()) / 2 - parseInt($('#parent_container').css("margin-top"))))
                     .style("left", num_as_px(logo_background.centerX - parseInt($('#wordmark').width()) / 2))
                 if (wordmark.style("opacity") == 0) {
-                    wordmark.transition().ease(WORDMARK_EASE_FN).duration(WORDMARK_EASE_DURATION).style('opacity', 1);
+                    wordmark.transition().ease(WORDMARK_EASE_FN).duration(WORDMARK_EASE_DURATION_MS).style('opacity', WORDMARK_FINAL_OPACITY);
                 }
             };
 
@@ -146,6 +151,7 @@
             var init_node_layers = function() {
                 update_logo_background_state();
                 $('#node_layers_container').height(logo_background.height);
+                $('#node_layers_container').css("opacity", 0);
                 var node_layer_max_height = (logo_background.height - (NODE_LAYER_ROWS * (node_layer_margin.top + node_layer_margin.bottom))) / NODE_LAYER_ROWS;
                 var node_layer_max_width = node_layer_max_height;
                 var node_layer_rows = NODE_LAYER_ROWS + 1;
@@ -172,6 +178,7 @@
                         $('#' + layer_id).css("left", num_as_px(col_idx * NODE_COL_SQUEEZE_FACTOR * (node_layer_max_width + node_layer_margin.left + node_layer_margin.right) - row_shift));
                     }
                 }
+                d3.select('#node_layers_container').transition().ease(NODE_LAYERS_EASE_FN).duration(NODE_LAYERS_EASE_DURATION_MS).style('opacity', NODE_LAYERS_FINAL_OPACITY);
             };
 
             var position_node_layers = function() {
