@@ -68,6 +68,7 @@
             const NODE_LAYER_ROWS = 5;
             const NODE_LAYER_ID_PREFIX = "node_layer_";
             const NODE_LAYER_SCALE = 0.9;
+            const NODE_LAYER_SLOWDOWN_FACTOR = 8;
             const NODE_ROW_SQUEEZE_FACTOR = 1.2;
             const NODE_COL_SQUEEZE_FACTOR = 0.3;
             const NODE_LAYERS_EASE_FN = "cubic";
@@ -82,7 +83,12 @@
             var logo_background = { offset : null, width : 0, height : 0, centerX : 0, centerY : 0 };
             var node_layers_xml = null;
             var node_layers_deque = new Deque();
+            var node_layers_ids = [];
+            var node_layers_visible = false;
             var node_layer_margin = { top : 0, right : 0, bottom : 0, left : 0 };
+
+            var animation_time_zero = Date.now();
+            var node_layer_rotation_degrees = 0;
 
             var svg_parent = document.getElementById('svg_container');
             var wordmark_parent = document.getElementById('wordmark_container');
@@ -158,7 +164,7 @@
                 });
             };
 
-            var init_node_layers = function() {
+            var init_node_layers = function(cb) {
                 update_logo_background_state();
                 $('#node_layers_container').height(logo_background.height);
                 $('#node_layers_container').css("opacity", 0);
@@ -167,15 +173,18 @@
                 var node_layer_rows = NODE_LAYER_ROWS;
                 var node_layer_cols = (1 / NODE_COL_SQUEEZE_FACTOR) * Math.ceil(logo_background.width / node_layer_max_width);
                 /* node layers are added by row */
+                var test_id = null;
                 for (var row_idx = 0; row_idx < node_layer_rows; row_idx++) {
                     var node_layer_row = [];
                     for (var col_idx = 0; col_idx < node_layer_cols; col_idx++) {
+                        var random_svg_node_layer_id = random_svg_node_layer_obj().id;
                         var col_shift = (col_idx % 2) ? 0 : node_layer_max_height / 2;
                         var row_shift = node_layer_max_width / 2;
                         // build a data model for the offset and size of a node layer
                         var node_layer_obj = {};
-                        node_layer_obj['id'] = Math.guid();
+                        node_layer_obj['id'] = 'node-layer-' + Math.guid(); // CSS selectors cannot start with digits cf. http://www.w3.org/TR/CSS21/syndata.html#value-def-identifier
                         node_layer_obj['static'] = true;
+                        node_layer_obj['initial_random_rotation'] = Math.floor(Math.random() * 360);
                         node_layer_obj['top'] = (row_idx * (node_layer_max_height + node_layer_margin.top + node_layer_margin.bottom) - col_shift) * NODE_ROW_SQUEEZE_FACTOR;
                         node_layer_obj['left'] = col_idx * NODE_COL_SQUEEZE_FACTOR * (node_layer_max_width + node_layer_margin.left + node_layer_margin.right) - row_shift;
                         node_layer_obj['width'] = NODE_LAYER_SCALE * node_layer_max_width + node_layer_margin.left + node_layer_margin.right;
@@ -184,6 +193,7 @@
                         // render UI element from data model
                         var layer_id = node_layer_obj['id'];
                         var layer_classes = "node_layer_container nlrow_" + row_idx + " nlcol_" + col_idx;
+                        if (row_idx == 1 && col_idx == 2) test_id = layer_id;
                         d3.select("#node_layers_container")
                             .append("svg")
                             .attr("id", layer_id)
@@ -192,19 +202,24 @@
                             .attr("height", node_layer_obj['height'])
                             .attr("viewBox", "0 0 216 216")
                             .append("g")
+                            .attr("class", "node_layer_transform")
                             .attr("transform", "translate(" + node_layer_margin.left + "," + node_layer_margin.top + ")")
                             .append("use")
                             .attr("class", "random_node_layer" + (col_idx % 2 ? " random_node_layer_even" : " random_node_layer_odd"))
-                            .attr("xlink:href", "#" + random_node_layer_id());
+                            .attr("xlink:href", "#" + random_svg_node_layer_id);
                         $('#' + layer_id).css("top", num_as_px(node_layer_obj['top']));
                         $('#' + layer_id).css("left", num_as_px(node_layer_obj['left']));
+                        node_layers_ids.push(layer_id);
                     }
                     node_layers_deque.push(node_layer_row);
                 }
-                d3.select('#node_layers_container').transition().ease(NODE_LAYERS_EASE_FN).duration(NODE_LAYERS_EASE_DURATION_MS).style('opacity', NODE_LAYERS_FINAL_OPACITY);
+                d3.select('#node_layers_container').transition().ease(NODE_LAYERS_EASE_FN).duration(NODE_LAYERS_EASE_DURATION_MS).style('opacity', NODE_LAYERS_FINAL_OPACITY).each("end", function() { 
+                    node_layers_visible = true; 
+                    cb();
+                });
             };
 
-            var position_node_layers = function() {
+            var position_node_layers = function(cb) {
                 //console.log(node_layers_deque);
                 update_logo_background_state();
                 $('#node_layers_container').height(logo_background.height);
@@ -232,14 +247,57 @@
                         $('#' + layer_id).css("left", num_as_px(node_layer_obj['left']));
                     }
                 }
+                if (cb) cb();
+            };
+
+            var animate_random_node_layers = function(n) {
+                if (node_layers_visible) {
+                    update_logo_background_state();
+                    var node_layer_max_height = (logo_background.height - (NODE_LAYER_ROWS * (node_layer_margin.top + node_layer_margin.bottom))) / NODE_LAYER_ROWS;
+                    var node_layer_max_width = node_layer_max_height;
+                    var node_layer_rows = NODE_LAYER_ROWS;
+                    var node_layer_cols = (1 / NODE_COL_SQUEEZE_FACTOR) * Math.ceil(logo_background.width / node_layer_max_width);
+                    for (var node_idx = 0; node_idx < n; node_idx++) {
+                        var random_node_layer_id = node_layers_ids[Math.floor(Math.random() * node_layers_ids.length)];
+                        //console.log("animating:", random_node_layer_id);
+                        for (var row_idx = 0; row_idx < node_layer_rows; row_idx++) {
+                            var node_layer_row = node_layers_deque.get(row_idx);
+                            for (var col_idx = 0; col_idx < node_layer_cols; col_idx++) {
+                                var node_layer_obj = node_layer_row[col_idx];
+                                var layer_id = node_layer_obj['id'];
+                                if (layer_id == random_node_layer_id) {
+                                    node_layer_obj['static'] = false;
+                                    d3.select("#" + layer_id)
+                                        .selectAll('.node_layer_transform')
+                                        .attr("class", "node_layer_transform rotating")
+                                        .attr("initial_random_rotation", node_layer_obj['initial_random_rotation']);
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            
+            d3.timer(function() {
+                var delta = (Date.now() - animation_time_zero);
+                node_layer_rotation_degrees = (delta / NODE_LAYER_SLOWDOWN_FACTOR) % 360;
+                update_node_layer_rotation();
+                //return (delta > 10000);
+                return false;
+            });
+
+            var update_node_layer_rotation = function() {
+                var rotating_node_layers = d3.selectAll('.node_layer_transform.rotating').attr("transform", function(d) { return "rotate(" + node_layer_rotation_degrees + ",112,109)"; });
             };
 
             var num_as_px = function(i) {
                 return parseFloat(i) + "px";
             };
 
-            var random_node_layer_id = function() {
-                return NODE_LAYER_ID_PREFIX + Math.ceil(Math.random() * NODE_LAYERS);
+            var random_svg_node_layer_obj = function() {
+                var idx = Math.ceil(Math.random() * NODE_LAYERS);
+                return { 'id' : NODE_LAYER_ID_PREFIX + idx, 'idx' : idx }; 
             };
 
             window.addEventListener("load", function() {
@@ -248,7 +306,7 @@
                 });
                 load_node_layers(function() { 
                     trigger_window_resize();
-                    init_node_layers();
+                    init_node_layers( function() { animate_random_node_layers(42); } );
                 });
             });
 
