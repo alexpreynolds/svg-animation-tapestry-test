@@ -61,6 +61,7 @@
             const NODE_LAYER_ROWS = 5;
             const NODE_LAYER_ID_PREFIX = "node_layer_";
             const NODE_LAYER_SCALE = 0.9;
+            const NODE_ROW_SQUEEZE_FACTOR = 1.2;
             const NODE_COL_SQUEEZE_FACTOR = 0.3;
             const NODE_LAYERS_EASE_FN = "cubic";
             const NODE_LAYERS_EASE_DURATION_MS = 1500;
@@ -175,7 +176,7 @@
                             .attr("xlink:href", "#" + random_node_layer_id());
                         var col_shift = (col_idx % 2) ? 0 : node_layer_max_height / 2;
                         var row_shift = node_layer_max_width / 2;
-                        $('#' + layer_id).css("top", num_as_px(row_idx * (node_layer_max_height + node_layer_margin.top + node_layer_margin.bottom) - col_shift));
+                        $('#' + layer_id).css("top", num_as_px((row_idx * (node_layer_max_height + node_layer_margin.top + node_layer_margin.bottom) - col_shift) * NODE_ROW_SQUEEZE_FACTOR));
                         $('#' + layer_id).css("left", num_as_px(col_idx * NODE_COL_SQUEEZE_FACTOR * (node_layer_max_width + node_layer_margin.left + node_layer_margin.right) - row_shift));
                     }
                 }
@@ -197,7 +198,7 @@
                         var row_shift = node_layer_max_width / 2;
                         $('#' + layer_id).css("width", NODE_LAYER_SCALE * node_layer_max_width + node_layer_margin.left + node_layer_margin.right);
                         $('#' + layer_id).css("height", NODE_LAYER_SCALE * node_layer_max_height + node_layer_margin.top + node_layer_margin.bottom);
-                        $('#' + layer_id).css("top", num_as_px(row_idx * (node_layer_max_height + node_layer_margin.top + node_layer_margin.bottom) - col_shift));
+                        $('#' + layer_id).css("top", num_as_px((row_idx * (node_layer_max_height + node_layer_margin.top + node_layer_margin.bottom) - col_shift) * NODE_ROW_SQUEEZE_FACTOR));
                         $('#' + layer_id).css("left", num_as_px(col_idx * NODE_COL_SQUEEZE_FACTOR * (node_layer_max_width + node_layer_margin.left + node_layer_margin.right) - row_shift));
                     }
                 }
