@@ -6,6 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" type="text/css" href="assets/css/styles.css" media="screen">
         <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
         <!-- cf. http://www.favicomatic.com -->
         <link rel="apple-touch-icon-precomposed" sizes="57x57" href="assets/favico/apple-touch-icon-57x57.png" />
         <link rel="apple-touch-icon-precomposed" sizes="114x114" href="assets/favico/apple-touch-icon-114x114.png" />
@@ -49,11 +50,15 @@
             <div id="background"><img src="assets/img/background.jpg" alt="Altius Institute for Biomedical Sciences" id="logo_background" class="logo_background" /></div>
         </div>
         
+        <!-- cf. https://github.com/petkaantonov/deque -->
+        <script type="text/javascript" src="assets/js/deque.min.js"></script>
+
         <script type="text/javascript" src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
-        <script type="text/javascript" src="//d3js.org/d3.v3.min.js"></script>
+        <script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
+        
         <script type="text/javascript">
 
-            const WORDMARK_FRACTION = 1.85; // a higher value makes a smaller wordmark
+            const WORDMARK_SCALE = 1.85; // a higher value makes a smaller wordmark
             const WORDMARK_EASE_FN = "cubic";
             const WORDMARK_EASE_DURATION_MS = 750;
             const WORDMARK_FINAL_OPACITY = 1;
@@ -129,7 +134,7 @@
             var position_wordmark = function() {
                 update_logo_background_state();
                 var wordmark = d3.select("#wordmark");
-                wordmark.style("width", num_as_px(logo_background.width / WORDMARK_FRACTION))
+                wordmark.style("width", num_as_px(logo_background.width / WORDMARK_SCALE))
                     .style("top", num_as_px(logo_background.centerY - parseInt($('#wordmark').height()) / 2 - parseInt($('#parent_container').css("margin-top"))))
                     .style("left", num_as_px(logo_background.centerX - parseInt($('#wordmark').width()) / 2))
                 if (wordmark.style("opacity") == 0) {
