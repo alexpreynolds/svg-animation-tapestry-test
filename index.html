@@ -118,12 +118,6 @@
                 trigger_window_resize();
             }
 
-            if (logo_background_img.complete) {
-                logo_background_img_loaded();
-            } else {
-                logo_background_img.addEventListener('load', logo_background_img_loaded);
-            }
-
             var load_wordmark = function(cb) {
                 var wordmark_path = SVG_ASSET_ROOT + "wordmark.svg";
                 d3.xml(wordmark_path, "image/svg+xml", function(error, xml) {
@@ -278,17 +272,10 @@
                 }
             };
 
-            
-            d3.timer(function() {
-                var delta = (Date.now() - animation_time_zero);
-                node_layer_rotation_degrees = (delta / NODE_LAYER_SLOWDOWN_FACTOR) % 360;
-                update_node_layer_rotation();
-                //return (delta > 10000);
-                return false;
-            });
-
             var update_node_layer_rotation = function() {
-                var rotating_node_layers = d3.selectAll('.node_layer_transform.rotating').attr("transform", function(d) { return "rotate(" + node_layer_rotation_degrees + ",112,109)"; });
+                if (node_layers_visible) {
+                    var rotating_node_layers = d3.selectAll('.node_layer_transform.rotating').attr("transform", function(d) { return "rotate(" + node_layer_rotation_degrees + ",114,110)"; });
+                }
             };
 
             var num_as_px = function(i) {
@@ -319,6 +306,26 @@
                     position_node_layers();
                 }, 200);
             });
+
+            if (logo_background_img.complete) {
+                logo_background_img_loaded();
+            } else {
+                logo_background_img.addEventListener('load', logo_background_img_loaded);
+            }
+
+            setInterval(function() {
+                var delta = (Date.now() - animation_time_zero);
+                node_layer_rotation_degrees = (delta / NODE_LAYER_SLOWDOWN_FACTOR) % 360;
+                update_node_layer_rotation();
+            }, 10);
+
+            // d3.timer(function() {
+            //     var delta = (Date.now() - animation_time_zero);
+            //     node_layer_rotation_degrees = (delta / NODE_LAYER_SLOWDOWN_FACTOR) % 360;
+            //     update_node_layer_rotation();
+            //     //return (delta > 10000);
+            //     return false;
+            // });
 
         </script>
     </body>
