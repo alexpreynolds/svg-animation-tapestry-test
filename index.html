@@ -39,8 +39,8 @@
                     <form class='settings_form'>
                         <label>Animation type: </label>
                         <select id="animation_type_select">
-                            <option value="random_nodes" selected="true">Random nodes</option>
-                            <option value="wipe_off_right">Wipe off (rightward)</option>
+                            <option value="random_nodes">Random nodes</option>
+                            <option value="wipe_off_right" selected="true">Wipe off (rightward)</option>
                         </select>
                     </form>
                 </div>
@@ -89,11 +89,18 @@
             const CONTENT_EASE_DURATION_MS = 750;
             const CONTENT_FINAL_OPACITY = 1;
             const CONTENT_TOP_PADDING = 20;
-            const TIME_ZERO = Date.now();
+            const ANIMATION_TIME_ZERO = Date.now();
+            const ANIMATION_RANDOM_NODES = 30;
+            const ANIMATION_WIPE_INITIAL_VELOCITY_X = 0;
+            const ANIMATION_WIPE_INITIAL_VELOCITY_Y = 0;
+            const ANIMATION_WIPE_INCREMENT_VELOCITY_X = 0.75;
+            const ANIMATION_WIPE_INCREMENT_VELOCITY_Y = 0.75;
 
+            var animation_frame_idx = 0;
             var animation_type_select = document.getElementById("animation_type_select");
             var animation_type_selection = animation_type_select.value;
             var animation_timer_on_hold = false;
+            var animation_wipe_current_column_idx = 0;
 
             var logo_background_img = document.getElementById('logo_background');
             var logo_background = { offset : null, width : 0, height : 0, centerX : 0, centerY : 0 };
@@ -184,7 +191,7 @@
                 node_layers.max_height = (logo_background.height - (NODE_LAYER_ROWS * (node_layer_margin.top + node_layer_margin.bottom))) / NODE_LAYER_ROWS;
                 node_layers.max_width = node_layers.max_height;
                 node_layers.rows = NODE_LAYER_ROWS;
-                node_layers.cols = (1 / NODE_COL_SQUEEZE_FACTOR) * Math.ceil(logo_background.width / node_layers.max_width);
+                node_layers.cols = Math.ceil((1 / NODE_COL_SQUEEZE_FACTOR) * Math.ceil(logo_background.width / node_layers.max_width));
             };
 
             var init_node_layers = function(cb) {
@@ -194,7 +201,7 @@
                 /* node layers are added by row */
                 var test_id = null;
                 for (var row_idx = 0; row_idx < node_layers.rows; row_idx++) {
-                    var node_layer_row = [];
+                    var node_layer_row = new Deque();
                     for (var col_idx = 0; col_idx < node_layers.cols; col_idx++) {
                         var random_svg_node_layer_id = random_svg_node_layer_obj().id;
                         var col_shift = (col_idx % 2) ? 0 : node_layers.max_height / 2;
@@ -203,11 +210,15 @@
                         var node_layer_obj = {};
                         node_layer_obj['id'] = 'node-layer-' + Math.guid(); // CSS selectors cannot start with digits cf. http://www.w3.org/TR/CSS21/syndata.html#value-def-identifier
                         node_layer_obj['static'] = true;
-                        node_layer_obj['initial_random_rotation'] = Math.floor(Math.random() * 360);
+                        node_layer_obj['initial_rotation'] = Math.floor(Math.random() * 360);
+                        node_layer_obj['velocity_x'] = ANIMATION_WIPE_INITIAL_VELOCITY_X;
+                        node_layer_obj['velocity_y'] = ANIMATION_WIPE_INITIAL_VELOCITY_Y;
                         node_layer_obj['top'] = (row_idx * (node_layers.max_height + node_layer_margin.top + node_layer_margin.bottom) - col_shift) * NODE_ROW_SQUEEZE_FACTOR;
                         node_layer_obj['left'] = col_idx * NODE_COL_SQUEEZE_FACTOR * (node_layers.max_width + node_layer_margin.left + node_layer_margin.right) - row_shift;
                         node_layer_obj['width'] = NODE_LAYER_SCALE * node_layers.max_width + node_layer_margin.left + node_layer_margin.right;
                         node_layer_obj['height'] = NODE_LAYER_SCALE * node_layers.max_height + node_layer_margin.top + node_layer_margin.bottom;
+                        node_layer_obj['original_top'] = node_layer_obj['top'];
+                        node_layer_obj['original_left'] = node_layer_obj['left'];
                         node_layer_row.push(node_layer_obj);
                         // render UI element from data model
                         var layer_id = node_layer_obj['id'];
@@ -239,14 +250,13 @@
             };
 
             var position_node_layers = function(cb) {
-                //console.log(node_layers_deque);
                 update_node_layers_state();
                 $('#node_layers_container').height(logo_background.height);
                 $('#svg_container').css("max-height", num_as_px(logo_background.height));
                 for (var row_idx = 0; row_idx < node_layers.rows; row_idx++) {
                     var node_layer_row = node_layers_deque.get(row_idx);
                     for (var col_idx = 0; col_idx < node_layers.cols; col_idx++) {
-                        var node_layer_obj = node_layer_row[col_idx];
+                        var node_layer_obj = node_layer_row.get(col_idx);
                         var layer_id = node_layer_obj['id'];
                         var col_shift = (col_idx % 2) ? 0 : node_layers.max_height / 2;
                         var row_shift = node_layers.max_width / 2;
@@ -270,19 +280,26 @@
                     for (var row_idx = 0; row_idx < node_layers.rows; row_idx++) {
                         var node_layer_row = node_layers_deque.get(row_idx);
                         for (var col_idx = 0; col_idx < node_layers.cols; col_idx++) {
-                            var node_layer_obj = node_layer_row[col_idx];
+                            var node_layer_obj = node_layer_row.get(col_idx);
                             var layer_id = node_layer_obj['id'];
+                            node_layer_obj['top'] = node_layer_obj['original_top'];
+                            node_layer_obj['left'] = node_layer_obj['original_left'];
+                            node_layer_obj['velocity_x'] = ANIMATION_WIPE_INITIAL_VELOCITY_X;
+                            node_layer_obj['velocity_y'] = ANIMATION_WIPE_INITIAL_VELOCITY_Y;
+                            $('#' + layer_id).css("top", num_as_px(node_layer_obj['original_top']));
+                            $('#' + layer_id).css("left", num_as_px(node_layer_obj['original_left']));
                             if (node_layers_animating.toArray().indexOf(layer_id) != -1) {
                                 node_layer_obj['static'] = true;
                                 d3.select("#" + layer_id)
                                     .selectAll('.node_layer_transform')
                                     .attr("class", "node_layer_transform")
-                                    .attr("initial_random_rotation", 0)
+                                    .attr("initial_rotation", 0)
                                     .attr("transform", null);
                             }
                         }
                     }
                     node_layers_animating.clear();
+                    position_node_layers();
                 }
             };
 
@@ -296,14 +313,14 @@
                 for (var row_idx = 0; row_idx < node_layers.rows; row_idx++) {
                     var node_layer_row = node_layers_deque.get(row_idx);
                     for (var col_idx = 0; col_idx < node_layers.cols; col_idx++) {
-                        var node_layer_obj = node_layer_row[col_idx];
+                        var node_layer_obj = node_layer_row.get(col_idx);
                         var layer_id = node_layer_obj['id'];
                         if (node_layers_animating.toArray().indexOf(layer_id) != -1) {
                             node_layer_obj['static'] = false;
                             d3.select("#" + layer_id)
                                 .selectAll('.node_layer_transform')
                                 .attr("class", "node_layer_transform rotating")
-                                .attr("initial_random_rotation", node_layer_obj['initial_random_rotation']);
+                                .attr("initial_rotation", node_layer_obj['initial_rotation']);
                         }
                     }
                 }
@@ -311,7 +328,50 @@
 
             var update_animation_random_nodes = function() {
                 if (node_layers_all_visible) {
-                    var rotating_node_layers = d3.selectAll('.node_layer_transform.rotating').attr("transform", function(d) { return "rotate(" + node_layer_rotation_degrees + ",113,110)"; });
+                    var rotating_node_layers = d3.selectAll('.node_layer_transform.rotating').attr("transform", function(d) { return "rotate(" + node_layer_rotation_degrees + ",114,109)"; });
+                }
+            };
+
+            var setup_animation_wipe_off_right = function() {
+                // get last column in each row and start moving it
+                animation_wipe_current_column_idx = node_layers.cols - 1;
+                for (var row_idx = 0; row_idx < node_layers.rows; row_idx++) {
+                    var node_layer_row = node_layers_deque.get(row_idx);
+                    var node_layer_obj = node_layer_row.get(animation_wipe_current_column_idx);
+                    var layer_id = node_layer_obj['id'];
+                    node_layer_obj['static'] = false;
+                    node_layers_animating.push(layer_id);
+                    node_layer_obj['velocity_x'] += ANIMATION_WIPE_INCREMENT_VELOCITY_X;
+                    d3.select("#" + layer_id)
+                                .selectAll('.node_layer_transform')
+                                .attr("class", "node_layer_transform wipe_off_right");
+                    node_layer_obj['left'] = node_layer_obj['left'] + node_layer_obj['velocity_x'];
+                    d3.select('#' + layer_id).transition().ease("exp").duration(0).style("left", num_as_px(node_layer_obj['left']));
+                }
+            };
+
+            var update_animation_wipe_off_right = function() {
+                if (node_layers_all_visible) {
+                    // move the current column off
+                    var leftmost_point = 0;
+                    for (var row_idx = 0; row_idx < node_layers.rows; row_idx++) {
+                        var node_layer_row = node_layers_deque.get(row_idx);
+                        var node_layer_obj = node_layer_row.get(animation_wipe_current_column_idx);
+                        var layer_id = node_layer_obj['id'];
+                        if (node_layer_obj['static']) {
+                            node_layer_obj['static'] = false;
+                            node_layers_animating.push(layer_id);
+                        }
+                        node_layer_obj['velocity_x'] += ANIMATION_WIPE_INCREMENT_VELOCITY_X;
+                        d3.select("#" + layer_id)
+                                .selectAll('.node_layer_transform')
+                                .attr("class", "node_layer_transform wipe_off_right");
+                        node_layer_obj['left'] = node_layer_obj['left'] + node_layer_obj['velocity_x'];
+                        leftmost_point = node_layer_obj['left'];
+                        d3.select('#' + layer_id).transition().ease("exp").duration(0).style("left", num_as_px(node_layer_obj['left']));
+                    }
+                    if (leftmost_point >= logo_background.width && animation_wipe_current_column_idx > 0)
+                        animation_wipe_current_column_idx--;
                 }
             };
 
@@ -338,14 +398,15 @@
                     logo_background_img.addEventListener('load', logo_background_img_loaded);
                 }
                 d3.timer(function() {
-                    var delta = (Date.now() - TIME_ZERO);
+                    var delta = (Date.now() - ANIMATION_TIME_ZERO);
                     node_layer_rotation_degrees = (delta / NODE_LAYER_SLOWDOWN_FACTOR) % 360;
                     if (animation_type_selection == "random_nodes") {
                         update_animation_random_nodes();
                     }
                     else if (animation_type_selection == "wipe_off_right") {
-
+                        update_animation_wipe_off_right();
                     }
+                    animation_frame_idx++;
                     return animation_timer_on_hold;
                 });
             });
@@ -366,13 +427,14 @@
                     if (node_layers_all_visible) {
                         update_node_layers_state();
                         reset_node_layers_animation_state();
-                        setup_animation_random_nodes(25);
+                        setup_animation_random_nodes(ANIMATION_RANDOM_NODES);
                     }
                 }
                 else if (animation_type_selection == "wipe_off_right") {
                     if (node_layers_all_visible) {
                         update_node_layers_state();
                         reset_node_layers_animation_state();
+                        setup_animation_wipe_off_right();
                     }
                 }
             }, false);

@@ -4,7 +4,7 @@
 	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="-107.5 49.1 500 300"
 	 xml:space="preserve">
 <filter id="blur-effect-1">
-    <feGaussianBlur stdDeviation="15" />
+    <feGaussianBlur stdDeviation="12" />
 </filter>
 <g id="wordmark_parent_group">
 	<g>
