@@ -74,6 +74,7 @@
             const WORDMARK_EASE_FN = "cubic";
             const WORDMARK_EASE_DURATION_MS = 750;
             const WORDMARK_FINAL_OPACITY = 1;
+            
             const NODE_LAYERS = 14;
             const NODE_LAYER_ROWS = 5;
             const NODE_LAYER_ID_PREFIX = "node_layer_";
@@ -84,17 +85,19 @@
             const NODE_LAYERS_EASE_FN = "cubic";
             const NODE_LAYERS_EASE_DURATION_MS = 2000;
             const NODE_LAYERS_FINAL_OPACITY = 1;
-            const SVG_ASSET_ROOT = "assets/components/";
+            
             const CONTENT_EASE_FN = "cubic";
             const CONTENT_EASE_DURATION_MS = 750;
             const CONTENT_FINAL_OPACITY = 1;
             const CONTENT_TOP_PADDING = 20;
-            const ANIMATION_TIME_ZERO = Date.now();
+            
             const ANIMATION_RANDOM_NODES = 30;
             const ANIMATION_WIPE_INITIAL_VELOCITY_X = 0;
             const ANIMATION_WIPE_INITIAL_VELOCITY_Y = 0;
             const ANIMATION_WIPE_INCREMENT_VELOCITY_X = 0.75;
             const ANIMATION_WIPE_INCREMENT_VELOCITY_Y = 0.75;
+
+            const SVG_ASSET_ROOT = "assets/components/";
 
             var animation_frame_idx = 0;
             var animation_type_select = document.getElementById("animation_type_select");
@@ -397,10 +400,10 @@
                 } else {
                     logo_background_img.addEventListener('load', logo_background_img_loaded);
                 }
+                // the timer updates the UI, one tick at a time
                 d3.timer(function() {
-                    var delta = (Date.now() - ANIMATION_TIME_ZERO);
-                    node_layer_rotation_degrees = (delta / NODE_LAYER_SLOWDOWN_FACTOR) % 360;
                     if (animation_type_selection == "random_nodes") {
+                        node_layer_rotation_degrees = (animation_frame_idx / NODE_LAYER_SLOWDOWN_FACTOR) % 360;
                         update_animation_random_nodes();
                     }
                     else if (animation_type_selection == "wipe_off_right") {
