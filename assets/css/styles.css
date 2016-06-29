@@ -80,3 +80,20 @@ img.logo_background:empty {
 .contact {
     font-size: small;
 }
+
+#animation_settings {
+    display: table;
+    margin: auto;
+}
+
+label {
+    display: inline-block;
+    min-width: 120px;
+    font-size: smaller;
+    text-align: right;
+    padding-right: 5px;
+}
+
+.settings_form {
+    text-align: left;
+}

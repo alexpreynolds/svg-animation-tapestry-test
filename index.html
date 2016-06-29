@@ -37,10 +37,21 @@
             <div id="content" style="opacity:0;">
                 <div id="animation_settings">
                     <form class='settings_form'>
+                        <label>Rows: </label>
+                        <select id="rows_count_select">
+                            <option value="3">6</option>
+                            <option value="4">8</option>
+                            <option value="5">10</option>
+                            <option value="6" selected="true">12</option>
+                            <option value="7">14</option>
+                            <option value="8">16</option>
+                        </select>
+                        <br />
                         <label>Animation type: </label>
                         <select id="animation_type_select">
                             <option value="random_nodes">Random nodes</option>
                             <option value="wipe_right" selected="true">Wipe right</option>
+                            <option value="zipper_right">Zipper right</option>
                         </select>
                     </form>
                 </div>
@@ -76,7 +87,6 @@
             const WORDMARK_FINAL_OPACITY = 1;
 
             const NODE_LAYERS = 14;
-            const NODE_LAYER_ROWS = 5;
             const NODE_LAYER_ID_PREFIX = "node_layer_";
             const NODE_LAYER_SCALE = 0.9;
             const NODE_LAYER_SLOWDOWN_FACTOR = 0.5;
@@ -92,12 +102,12 @@
             const CONTENT_TOP_PADDING = 20;
             
             const ANIMATION_RANDOM_NODES = 30;
-            const ANIMATION_WIPE_INITIAL_VELOCITY_X = 0;
-            const ANIMATION_WIPE_INITIAL_VELOCITY_Y = 0;
-            const ANIMATION_WIPE_INCREMENT_VELOCITY_X = 0.25;
-            const ANIMATION_WIPE_INCREMENT_VELOCITY_Y = 0.25;
-            const ANIMATION_WIPE_EASE_FN = "lienar";
-            const ANIMATION_WIPE_DURATION_MS = 10;
+            const ANIMATION_INITIAL_VELOCITY_X = 0;
+            const ANIMATION_INITIAL_VELOCITY_Y = 0;
+            const ANIMATION_INCREMENT_VELOCITY_X = 0.3;
+            const ANIMATION_INCREMENT_VELOCITY_Y = 0.175;
+            const ANIMATION_EASE_FN = "lienar";
+            const ANIMATION_DURATION_MS = 10;
 
             const SVG_ASSET_ROOT = "assets/components/";
 
@@ -106,9 +116,13 @@
             var animation_type_selection = animation_type_select.value;
             var animation_timer_on_hold = false;
             var animation_wipe_current_column_idx = 0;
+            var animation_zipper_current_column_idx = 0;
 
             var logo_background_img = document.getElementById('logo_background');
             var logo_background = { offset : null, width : 0, height : 0, centerX : 0, centerY : 0 };
+
+            var rows_count_select = document.getElementById("rows_count_select");
+            var rows_count_selection = rows_count_select.value;
 
             var node_layers_xml = null;
             var node_layers_deque = new Deque();
@@ -118,6 +132,19 @@
             var node_layer_margin = { top : 0, right : 0, bottom : 0, left : 0 };
             var node_layers = { max_height : 0, max_width : 0, rows : 0, cols : 0 };
             var node_layer_rotation_degrees = 0;
+            var node_layer_rows = rows_count_selection;
+
+            var init_node_layer_state = function() {
+                node_layers_xml = null;
+                node_layers_deque = new Deque();
+                node_layers_ids = [];
+                node_layers_animating = new Deque();
+                node_layers_all_visible = false;
+                node_layer_margin = { top : 0, right : 0, bottom : 0, left : 0 };
+                node_layers = { max_height : 0, max_width : 0, rows : 0, cols : 0 };
+                node_layer_rotation_degrees = 0;
+                node_layer_rows = rows_count_selection;
+            };
 
             var svg_parent = document.getElementById('svg_container');
             var wordmark_parent = document.getElementById('wordmark_container');
@@ -193,9 +220,9 @@
 
             var update_node_layers_state = function() {
                 update_logo_background_state();
-                node_layers.max_height = (logo_background.height - (NODE_LAYER_ROWS * (node_layer_margin.top + node_layer_margin.bottom))) / NODE_LAYER_ROWS;
+                node_layers.max_height = (logo_background.height - (node_layer_rows * (node_layer_margin.top + node_layer_margin.bottom))) / node_layer_rows;
                 node_layers.max_width = node_layers.max_height;
-                node_layers.rows = NODE_LAYER_ROWS;
+                node_layers.rows = node_layer_rows;
                 node_layers.cols = Math.ceil((1 / NODE_COL_SQUEEZE_FACTOR) * Math.ceil(logo_background.width / node_layers.max_width));
             };
 
@@ -216,8 +243,8 @@
                         node_layer_obj['id'] = 'node-layer-' + Math.guid(); // CSS selectors cannot start with digits cf. http://www.w3.org/TR/CSS21/syndata.html#value-def-identifier
                         node_layer_obj['static'] = true;
                         node_layer_obj['initial_rotation'] = Math.floor(Math.random() * 360);
-                        node_layer_obj['velocity_x'] = ANIMATION_WIPE_INITIAL_VELOCITY_X;
-                        node_layer_obj['velocity_y'] = ANIMATION_WIPE_INITIAL_VELOCITY_Y;
+                        node_layer_obj['velocity_x'] = ANIMATION_INITIAL_VELOCITY_X;
+                        node_layer_obj['velocity_y'] = ANIMATION_INITIAL_VELOCITY_Y;
                         node_layer_obj['top'] = (row_idx * (node_layers.max_height + node_layer_margin.top + node_layer_margin.bottom) - col_shift) * NODE_ROW_SQUEEZE_FACTOR;
                         node_layer_obj['left'] = col_idx * NODE_COL_SQUEEZE_FACTOR * (node_layers.max_width + node_layer_margin.left + node_layer_margin.right) - row_shift;
                         node_layer_obj['width'] = NODE_LAYER_SCALE * node_layers.max_width + node_layer_margin.left + node_layer_margin.right;
@@ -275,8 +302,7 @@
                         /* update UI */
                         $('#' + layer_id).css("width", num_as_px(node_layer_obj['width']));
                         $('#' + layer_id).css("height", num_as_px(node_layer_obj['height']));
-                        d3.select('#' + layer_id).transition().ease("linear").duration(10).style("top", num_as_px(node_layer_obj['original_top']));
-                        d3.select('#' + layer_id).transition().ease("linear").duration(10).style("left", num_as_px(node_layer_obj['original_left']));
+                        d3.select('#' + layer_id).transition().ease("linear").duration(0).style("top", num_as_px(node_layer_obj['top'])).style("left", num_as_px(node_layer_obj['left']));
                     }
                 }
                 if (cb) cb();
@@ -291,8 +317,8 @@
                             var layer_id = node_layer_obj['id'];
                             node_layer_obj['top'] = node_layer_obj['original_top'];
                             node_layer_obj['left'] = node_layer_obj['original_left'];
-                            node_layer_obj['velocity_x'] = ANIMATION_WIPE_INITIAL_VELOCITY_X;
-                            node_layer_obj['velocity_y'] = ANIMATION_WIPE_INITIAL_VELOCITY_Y;
+                            node_layer_obj['velocity_x'] = ANIMATION_INITIAL_VELOCITY_X;
+                            node_layer_obj['velocity_y'] = ANIMATION_INITIAL_VELOCITY_Y;
                             $('#' + layer_id).css("top", num_as_px(node_layer_obj['original_top']));
                             $('#' + layer_id).css("left", num_as_px(node_layer_obj['original_left']));
                             if (node_layers_animating.toArray().indexOf(layer_id) != -1) {
@@ -348,12 +374,12 @@
                     var layer_id = node_layer_obj['id'];
                     node_layer_obj['static'] = false;
                     node_layers_animating.push(layer_id);
-                    node_layer_obj['velocity_x'] += ANIMATION_WIPE_INCREMENT_VELOCITY_X;
+                    node_layer_obj['velocity_x'] += ANIMATION_INCREMENT_VELOCITY_X;
                     d3.select("#" + layer_id)
                                 .selectAll('.node_layer_transform')
                                 .attr("class", "node_layer_transform wipe_right");
                     node_layer_obj['left'] = node_layer_obj['left'] + node_layer_obj['velocity_x'];
-                    d3.select('#' + layer_id).transition().ease(ANIMATION_WIPE_EASE_FN).duration(ANIMATION_WIPE_DURATION_MS).style("left", num_as_px(node_layer_obj['left']));
+                    d3.select('#' + layer_id).transition().ease(ANIMATION_EASE_FN).duration(ANIMATION_DURATION_MS).style("left", num_as_px(node_layer_obj['left']));
                 }
             };
 
@@ -369,14 +395,14 @@
                             node_layer_obj['static'] = false;
                             node_layers_animating.push(layer_id);
                         }
-                        node_layer_obj['velocity_x'] += ANIMATION_WIPE_INCREMENT_VELOCITY_X * 0.33 * (node_layers.cols - animation_wipe_current_column_idx);
+                        node_layer_obj['velocity_x'] += ANIMATION_INCREMENT_VELOCITY_X * 0.33 * (node_layers.cols - animation_wipe_current_column_idx);
                         d3.select("#" + layer_id)
                                 .selectAll('.node_layer_transform')
                                 .attr("class", "node_layer_transform wipe_right")
                                 .attr("velocity_x", node_layer_obj['velocity_x']);
                         node_layer_obj['left'] = node_layer_obj['left'] + node_layer_obj['velocity_x'];
                         leftmost_point = node_layer_obj['left'];
-                        d3.select('#' + layer_id).transition().ease(ANIMATION_WIPE_EASE_FN).duration(ANIMATION_WIPE_DURATION_MS).style("left", num_as_px(node_layer_obj['left']));
+                        d3.select('#' + layer_id).transition().ease(ANIMATION_EASE_FN).duration(ANIMATION_DURATION_MS).style("left", num_as_px(node_layer_obj['left']));
                     }
                     if (leftmost_point >= logo_background.width && animation_wipe_current_column_idx >= 0) {
                         animation_wipe_current_column_idx--;
@@ -387,6 +413,98 @@
                         trigger_animation_type_selection();
                         animation_timer_on_hold = false;
                     }
+                }
+            };
+
+            var setup_animation_zipper_right = function() {
+                // get last column in each row and start moving it
+                animation_zipper_current_column_idx = node_layers.cols - 1;
+                for (var row_idx = 0; row_idx < node_layers.rows; row_idx++) {
+                    var node_layer_row = node_layers_deque.get(row_idx);
+                    var node_layer_obj = node_layer_row.get(animation_wipe_current_column_idx);
+                    var layer_id = node_layer_obj['id'];
+                    node_layer_obj['static'] = false;
+                    node_layers_animating.push(layer_id);
+                    node_layer_obj['velocity_x'] += ANIMATION_INCREMENT_VELOCITY_X;
+                    if ((node_layer_obj['top'] + (node_layer_obj['height'] / 2)) < (logo_background.height / 2)) {
+                        node_layer_obj['velocity_y'] -= ANIMATION_INCREMENT_VELOCITY_Y;
+                    }
+                    else {
+                        node_layer_obj['velocity_y'] += ANIMATION_INCREMENT_VELOCITY_Y;
+                    }
+                    d3.select("#" + layer_id)
+                                .selectAll('.node_layer_transform')
+                                .attr("class", "node_layer_transform zipper_right");
+                    node_layer_obj['left'] = node_layer_obj['left'] + node_layer_obj['velocity_x'];
+                    node_layer_obj['top'] = node_layer_obj['top'] + node_layer_obj['velocity_y'];
+                    d3.select('#' + layer_id).transition().ease(ANIMATION_EASE_FN).duration(ANIMATION_DURATION_MS).style("left", num_as_px(node_layer_obj['left'])).style("top", num_as_px(node_layer_obj['top']));
+                }
+            };
+
+            var update_animation_zipper_right = function() {
+                if (node_layers_all_visible) {
+                    // move the current column off
+                    var leftmost_point = 0;
+                    var is_per_column_node_layer_outside = [];
+                    for (var row_idx = 0; row_idx < node_layers.rows; row_idx++) { 
+                        is_per_column_node_layer_outside[row_idx] = false; 
+                    }
+                    for (var row_idx = 0; row_idx < node_layers.rows; row_idx++) {
+                        var node_layer_row = node_layers_deque.get(row_idx);
+                        var node_layer_obj = node_layer_row.get(animation_zipper_current_column_idx);
+                        var layer_id = node_layer_obj['id'];
+                        if (node_layer_obj['static']) {
+                            node_layer_obj['static'] = false;
+                            node_layers_animating.push(layer_id);
+                        }
+                        node_layer_obj['velocity_x'] += ANIMATION_INCREMENT_VELOCITY_X * 0.33 * (node_layers.cols - animation_wipe_current_column_idx);
+                        if ((node_layer_obj['top'] + (node_layer_obj['height'] / 2)) < (logo_background.height / 2)) {
+                            node_layer_obj['velocity_y'] -= 2 * ANIMATION_INCREMENT_VELOCITY_Y;
+                        }
+                        else {
+                            node_layer_obj['velocity_y'] += 2 * ANIMATION_INCREMENT_VELOCITY_Y;
+                        }
+                        d3.select("#" + layer_id)
+                                .selectAll('.node_layer_transform')
+                                .attr("class", "node_layer_transform zipper_right")
+                                .attr("velocity_x", node_layer_obj['velocity_x'])
+                                .attr("velocity_y", node_layer_obj['velocity_y']);
+                        node_layer_obj['left'] = node_layer_obj['left'] + node_layer_obj['velocity_x'];
+                        node_layer_obj['top'] = node_layer_obj['top'] + node_layer_obj['velocity_y'];
+                        leftmost_point = node_layer_obj['left'];
+                        d3.select('#' + layer_id)
+                            .transition()
+                            .ease(ANIMATION_EASE_FN)
+                            .duration(0)
+                            .style("left", num_as_px(node_layer_obj['left']))
+                            .style("top", num_as_px(node_layer_obj['top']))
+                            .each("end", function() { 
+                                for (var row_idx = 0; row_idx < node_layers.rows; row_idx++) {
+                                    var node_layer_row = node_layers_deque.get(row_idx);
+                                    var node_layer_obj = node_layer_row.get(animation_zipper_current_column_idx);
+                                    var layer_id = node_layer_obj['id'];
+                                    is_per_column_node_layer_outside[row_idx] = ((node_layer_obj['top'] < -node_layer_obj['height']) || (node_layer_obj['top'] > logo_background.height + node_layer_obj['height']));
+                                }
+                                var all_per_column_node_layers_are_outside = true;
+                                for (var row_idx = 0; row_idx < node_layers.rows; row_idx++) {
+                                    if (!is_per_column_node_layer_outside[row_idx]) { 
+                                        all_per_column_node_layers_are_outside = false; 
+                                        break;
+                                    }
+                                }
+                                if (all_per_column_node_layers_are_outside) {
+                                    animation_zipper_current_column_idx--;
+                                    if (animation_zipper_current_column_idx == -1) {
+                                        animation_timer_on_hold = true;
+                                        position_node_layers();
+                                        trigger_animation_type_selection();
+                                        animation_timer_on_hold = false;
+                                        return;
+                                    }
+                                }  
+                            });
+                    }
+                    
                 }
             };
 
@@ -421,6 +539,9 @@
                     else if (animation_type_selection == "wipe_right") {
                         update_animation_wipe_right();
                     }
+                    else if (animation_type_selection == "zipper_right") {
+                        update_animation_zipper_right();
+                    }
                     animation_frame_idx++;
                     return animation_timer_on_hold;
                 });
@@ -441,20 +562,39 @@
 
             animation_type_select.addEventListener("change", function() {
                 animation_type_selection = animation_type_select.value;
-                if (animation_type_selection == "random_nodes") {
-                    if (node_layers_all_visible) {
+                if (node_layers_all_visible) {
+                    if (animation_type_selection == "random_nodes") {                
                         update_node_layers_state();
                         reset_node_layers_animation_state();
                         setup_animation_random_nodes(ANIMATION_RANDOM_NODES);
                     }
-                }
-                else if (animation_type_selection == "wipe_right") {
-                    if (node_layers_all_visible) {
+                    else if (animation_type_selection == "wipe_right") {
                         update_node_layers_state();
                         reset_node_layers_animation_state();
                         setup_animation_wipe_right();
                     }
+                    else if (animation_type_selection == "zipper_right") {
+                        update_node_layers_state();
+                        reset_node_layers_animation_state();
+                        setup_animation_zipper_right();
+                    }
                 }
+            }, false);
+
+            rows_count_select.addEventListener("change", function() {
+                rows_count_selection = rows_count_select.value;
+                node_layer_rows = rows_count_selection;
+                // for (var row_idx = 0; row_idx < node_layers.rows; row_idx++) {
+                //     var node_layer_row = node_layers_deque.get(row_idx);
+                //     var node_layer_obj = node_layer_row.get(animation_zipper_current_column_idx);
+                //     var layer_id = node_layer_obj['id'];
+                // }
+                d3.selectAll('.node_layer_container').remove();
+                load_node_layers(function() {
+                    init_node_layer_state();
+                    trigger_window_resize();
+                    init_node_layers(function() { trigger_animation_type_selection(); });
+                });
             }, false);
 
         </script>
